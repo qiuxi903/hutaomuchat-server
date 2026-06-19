@@ -5,6 +5,7 @@ const http = require('http');
 const fs = require('fs');
 
 const db = require('./db');
+const logger = require('./logger');
 const { router: setupRouter, isInitialized, loadConfig } = require('./routes/setup');
 
 const app = express();
@@ -139,4 +140,7 @@ server.listen(PORT, () => {
   console.log('  This program is free software: you can redistribute it and/or modify');
   console.log('  it under the terms of the GNU Affero General Public License v3.0.');
   console.log('');
+
+  // Log server start
+  logger.system.info(`${name} Server started`, { port: PORT, initialized: isInitialized() });
 });

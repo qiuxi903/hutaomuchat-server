@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
+const logger = require('../logger');
 const { generateToken } = require('../middleware/auth');
 const express = require('express');
 const { authMiddleware } = require('../middleware/auth');
@@ -58,6 +59,10 @@ router.post('/register', (req, res) => {
 
   db.createUser(user);
   db.autoJoinGlobalChat(user.id);
+
+  // Log registration
+  logger.user.register(user.id, phone);
+  logger.system.info('New user registered', { userId: user.id, phone, nickname });
 
   const safeUser = {
     id: user.id,
@@ -119,6 +124,12 @@ router.post('/login', (req, res) => {
   };
 
   const token = generateToken(safeUser);
+
+  // Log login
+  const ip = req.ip || req.connection.remoteAddress;
+  logger.user.login(user.id, ip);
+  logger.system.info('User logged in', { userId: user.id, nickname: user.nickname, ip });
+
   res.json({ token, user: safeUser });
 });
 

@@ -387,4 +387,79 @@ router.get('/join-requests', adminAuth, (req, res) => {
   res.json({ joinRequests: enriched });
 });
 
+// ========== Logs ==========
+const logger = require('../logger');
+
+// Get system logs (in-memory cache)
+router.get('/logs/system', adminAuth, (req, res) => {
+  const { limit = 100, level } = req.query;
+  const logs = logger.getSystemLogs(parseInt(limit), level);
+  res.json({ logs });
+});
+
+// Get user operation logs (in-memory cache)
+router.get('/logs/user', adminAuth, (req, res) => {
+  const { limit = 100, userId, action } = req.query;
+  const logs = logger.getUserLogs(parseInt(limit), userId, action);
+  res.json({ logs });
+});
+
+// Get log file content
+router.get('/logs/file/:type', adminAuth, (req, res) => {
+  const { type } = req.params;
+  const { date, lines = 200 } = req.query;
+
+  if (!['system', 'user'].includes(type)) {
+    return res.status(400).json({ error: '日志类型必须是 system 或 user' });
+  }
+
+  const content = logger.getLogFileContent(type, date, parseInt(lines));
+  res.json({ content, type, date: date || new Date().toISOString().split('T')[0] });
+});
+
+// Get available log files
+router.get('/logs/files', adminAuth, (req, res) => {
+  const files = logger.getLogFiles();
+  res.json(files);
+});
+
+// Get log statistics
+router.get('/logs/stats', adminAuth, (req, res) => {
+  const systemLogs = logger.getSystemLogs(1000);
+  const userLogs = logger.getUserLogs(1000);
+
+  // System log level distribution
+  const systemLevels = {};
+  systemLogs.forEach(log => {
+    systemLevels[log.level] = (systemLevels[log.level] || 0) + 1;
+  });
+
+  // User action distribution
+  const userActions = {};
+  userLogs.forEach(log => {
+    userActions[log.action] = (userActions[log.action] || 0) + 1;
+  });
+
+  // Active users (by log count)
+  const userActivity = {};
+  userLogs.forEach(log => {
+    userActivity[log.userId] = (userActivity[log.userId] || 0) + 1;
+  });
+  const topUsers = Object.entries(userActivity)
+    .sort(([,a], [,b]) => b - a)
+    .slice(0, 10)
+    .map(([userId, count]) => {
+      const user = db.findUserById(userId);
+      return { userId, count, nickname: user ? user.nickname : '未知' };
+    });
+
+  res.json({
+    systemLogCount: systemLogs.length,
+    userLogCount: userLogs.length,
+    systemLevels,
+    userActions,
+    topUsers
+  });
+});
+
 module.exports = router;

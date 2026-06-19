@@ -2,6 +2,7 @@ const WebSocket = require('ws');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
+const logger = require('../logger');
 const { JWT_SECRET } = require('../middleware/auth');
 const getui = require('../getui');
 
@@ -189,6 +190,9 @@ class WebSocketManager {
     // Store message in db for history
     db.addMessage(messageData);
 
+    // Log message send
+    logger.user.sendMessage(ws.userId, chatId, messageType);
+
     const broadcastMsg = {
       type: 'message',
       message: messageData,
@@ -267,6 +271,9 @@ class WebSocketManager {
 
     // Remove message from server storage
     db.removeMessage(messageId);
+
+    // Log message recall
+    logger.user.recallMessage(ws.userId, messageId);
 
     // Forward RECALL to all OTHER members of the chat
     const memberIds = db.getChatMembers(chatId);
