@@ -34,6 +34,19 @@ function loadConfig() {
   return null;
 }
 
+// Save server config
+function saveConfig(config) {
+  try {
+    const existingConfig = loadConfig() || {};
+    const updatedConfig = { ...existingConfig, ...config };
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(updatedConfig, null, 2));
+    return true;
+  } catch (err) {
+    console.error('[Config] Failed to save config:', err.message);
+    return false;
+  }
+}
+
 // Check initialization status
 router.get('/status', (req, res) => {
   res.json({ initialized: isInitialized() });
@@ -101,4 +114,4 @@ router.post('/', (req, res) => {
   res.json({ success: true, message: '初始化完成，请重启服务端使配置生效' });
 });
 
-module.exports = { router, isInitialized, loadConfig };
+module.exports = { router, isInitialized, loadConfig, saveConfig };

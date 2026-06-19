@@ -462,4 +462,141 @@ router.get('/logs/stats', adminAuth, (req, res) => {
   });
 });
 
+// ========== Server Settings ==========
+const { loadConfig, saveConfig } = require('../routes/setup');
+
+// Get server settings
+router.get('/settings', adminAuth, (req, res) => {
+  const config = loadConfig() || {};
+  res.json({
+    serverName: config.serverName || 'HutaomuChat',
+    serverPort: config.serverPort || 3000,
+    adminUser: config.adminUser || 'admin',
+    // Don't return password, just indicate if it's set
+    hasPassword: !!config.adminPass,
+    jwtSecret: config.jwtSecret ? '********' : '',
+    hasJwtSecret: !!config.jwtSecret,
+    getuiConfigured: fs.existsSync(path.join(__dirname, '..', 'getui.config.json')),
+  });
+});
+
+// Update server settings
+router.put('/settings', adminAuth, (req, res) => {
+  const { serverName, serverPort, adminUser, adminPass, jwtSecret } = req.body;
+  const config = loadConfig() || {};
+
+  if (serverName !== undefined) config.serverName = serverName;
+  if (serverPort !== undefined) config.serverPort = parseInt(serverPort);
+  if (adminUser !== undefined) config.adminUser = adminUser;
+  if (adminPass !== undefined && adminPass !== '') config.adminPass = adminPass;
+  if (jwtSecret !== undefined && jwtSecret !== '' && jwtSecret !== '********') config.jwtSecret = jwtSecret;
+
+  saveConfig(config);
+
+  // Update environment variables
+  process.env.ADMIN_USER = config.adminUser || 'admin';
+  process.env.ADMIN_PASS = config.adminPass || 'hutaomu2024';
+  if (config.jwtSecret) process.env.JWT_SECRET = config.jwtSecret;
+
+  logger.system.info('Server settings updated', { adminUser: config.adminUser });
+
+  res.json({ success: true, message: '设置已保存，部分设置需要重启服务端才能生效' });
+});
+
+// Update GeTui config
+router.put('/settings/getui', adminAuth, (req, res) => {
+  const { appId, appKey, masterSecret } = req.body;
+
+  if (!appId || !appKey || !masterSecret) {
+    return res.status(400).json({ error: '所有字段都是必填的' });
+  }
+
+  const configPath = path.join(__dirname, '..', 'getui.config.json');
+  const config = { appId, appKey, masterSecret };
+
+  try {
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
+    logger.system.info('GeTui config updated');
+    res.json({ success: true, message: '个推配置已保存，需要重启服务端才能生效' });
+  } catch (err) {
+    res.status(500).json({ error: '保存配置失败: ' + err.message });
+  }
+});
+
+// Reset server (format)
+router.post('/settings/reset', adminAuth, (req, res) => {
+  const { confirm } = req.body;
+
+  if (confirm !== 'RESET_ALL_DATA') {
+    return res.status(400).json({ error: '请提供正确的确认码: RESET_ALL_DATA' });
+  }
+
+  try {
+    // Clear all data
+    db.users.length = 0;
+    db.friendships.length = 0;
+    db.friendRequests.length = 0;
+    db.chats.length = 0;
+    db.chatMembers.length = 0;
+    db.messages.length = 0;
+    db.offlineQueue.length = 0;
+    db.recallQueue.length = 0;
+    db.moments.length = 0;
+    db.momentLikes.length = 0;
+    db.momentComments.length = 0;
+    db.stickers.length = 0;
+    db.announcements.length = 0;
+    db.groupFileSettings.length = 0;
+    db.groupJoinRequests.length = 0;
+    db.pushTokens.length = 0;
+
+    // Reset counters
+    db.groupUidCounter = 0;
+
+    // Clear data.json
+    const dataPath = path.join(__dirname, '..', 'data.json');
+    if (fs.existsSync(dataPath)) {
+      fs.writeFileSync(dataPath, '{}', 'utf8');
+    }
+
+    // Clear uploads
+    const uploadsDir = path.join(__dirname, '..', 'uploads');
+    if (fs.existsSync(uploadsDir)) {
+      const files = fs.readdirSync(uploadsDir);
+      files.forEach(file => {
+        if (file !== '.gitkeep') {
+          fs.unlinkSync(path.join(uploadsDir, file));
+        }
+      });
+    }
+
+    // Clear logs
+    const logsDir = path.join(__dirname, '..', 'logs');
+    if (fs.existsSync(logsDir)) {
+      const files = fs.readdirSync(logsDir);
+      files.forEach(file => {
+        fs.unlinkSync(path.join(logsDir, file));
+      });
+    }
+
+    logger.system.warn('Server reset by admin', { admin: req.admin.username });
+
+    res.json({ success: true, message: '服务端已格式化，所有数据已清除，需要重启服务端' });
+  } catch (err) {
+    logger.system.error('Server reset failed', { error: err.message });
+    res.status(500).json({ error: '格式化失败: ' + err.message });
+  }
+});
+
+// Restart server (signal)
+router.post('/settings/restart', adminAuth, (req, res) => {
+  logger.system.info('Server restart requested by admin', { admin: req.admin.username });
+  res.json({ success: true, message: '重启信号已发送，服务端将在 2 秒后重启' });
+
+  // Graceful restart after response
+  setTimeout(() => {
+    process.exit(0); // Process manager (PM2/systemd) will restart it
+  }, 2000);
+});
+
 module.exports = router;

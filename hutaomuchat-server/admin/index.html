@@ -402,6 +402,173 @@ tr:hover td{background:rgba(108,92,231,.05)}
 .log-card-user-id{color:var(--primary-light);font-weight:600;font-size:12px}
 .log-card-action{color:var(--info);font-weight:600;font-size:12px}
 
+/* Settings Page */
+.settings-info-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:16px;
+  margin-bottom:24px;
+}
+.settings-info-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:20px;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  transition:transform .2s,box-shadow .2s;
+}
+.settings-info-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(0,0,0,.1);
+}
+.settings-info-icon{
+  width:48px;
+  height:48px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.settings-info-content{flex:1;overflow:hidden}
+.settings-info-label{
+  font-size:12px;
+  color:var(--text2);
+  margin-bottom:4px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+.settings-info-value{
+  font-size:16px;
+  font-weight:600;
+  color:var(--text);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.settings-sections{display:flex;flex-direction:column;gap:24px}
+.settings-section{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  overflow:hidden;
+}
+.settings-section-header{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:20px 24px;
+  border-bottom:1px solid var(--border);
+}
+.settings-section-icon{
+  width:40px;
+  height:40px;
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+.settings-section-header h3{
+  font-size:16px;
+  font-weight:600;
+  margin-bottom:2px;
+}
+.settings-section-desc{
+  font-size:13px;
+  color:var(--text2);
+}
+.settings-form{padding:24px}
+.settings-form-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-bottom:16px;
+}
+.settings-form-row:last-of-type{margin-bottom:0}
+.settings-form-group{display:flex;flex-direction:column;gap:6px}
+.settings-form-group label{
+  font-size:13px;
+  font-weight:500;
+  color:var(--text2);
+}
+.settings-form-group input{
+  padding:10px 14px;
+  background:var(--card2);
+  border:1px solid var(--border);
+  border-radius:8px;
+  color:var(--text);
+  font-size:14px;
+  outline:none;
+  transition:border-color .2s;
+}
+.settings-form-group input:focus{border-color:var(--primary)}
+.settings-form-group input::placeholder{color:var(--text2);opacity:.6}
+.settings-form-actions{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:20px;
+  padding-top:20px;
+  border-top:1px solid var(--border);
+}
+.settings-form-actions .btn{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.settings-danger{border-color:rgba(243,139,168,.3)}
+.settings-danger-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  padding:24px;
+}
+.settings-danger-card{
+  padding:20px;
+  background:var(--card2);
+  border-radius:10px;
+  border:1px solid var(--border);
+}
+.settings-danger-card-red{border-color:rgba(243,139,168,.3)}
+.settings-danger-card-header{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.settings-danger-card-header h4{
+  font-size:14px;
+  font-weight:600;
+}
+.settings-danger-card p{
+  font-size:13px;
+  color:var(--text2);
+  margin-bottom:16px;
+  line-height:1.5;
+}
+.settings-danger-card .btn{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.settings-reset-form{
+  display:flex;
+  gap:8px;
+}
+.settings-reset-form input{
+  flex:1;
+  padding:8px 12px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:6px;
+  color:var(--text);
+  font-size:13px;
+  outline:none;
+}
+.settings-reset-form input:focus{border-color:var(--danger)}
+
 /* Classic Log Style (for terminal theme) */
 .log-line-classic{
   padding:6px 10px;
@@ -556,6 +723,10 @@ tr:hover td{background:rgba(108,92,231,.05)}
       <div class="nav-item" data-page="logs" onclick="switchPage('logs')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         <span id="nav-logs">日志查看</span>
+      </div>
+      <div class="nav-item" data-page="settings" onclick="switchPage('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span id="nav-settings">服务端设置</span>
       </div>
     </div>
     <div class="sidebar-footer">
@@ -797,6 +968,183 @@ tr:hover td{background:rgba(108,92,231,.05)}
         </div>
       </div>
     </div>
+
+    <!-- Settings -->
+    <div class="page" id="page-settings">
+      <h2 class="page-title" id="title-settings">服务端设置</h2>
+
+      <!-- Server Info Cards -->
+      <div class="settings-info-grid">
+        <div class="settings-info-card">
+          <div class="settings-info-icon" style="background:rgba(137,180,250,.15);color:#89b4fa">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          </div>
+          <div class="settings-info-content">
+            <div class="settings-info-label" id="lbl-server-name">服务器名称</div>
+            <div class="settings-info-value" id="settings-server-name">-</div>
+          </div>
+        </div>
+
+        <div class="settings-info-card">
+          <div class="settings-info-icon" style="background:rgba(166,227,161,.15);color:#a6e3a1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <div class="settings-info-content">
+            <div class="settings-info-label" id="lbl-server-port">端口</div>
+            <div class="settings-info-value" id="settings-server-port">-</div>
+          </div>
+        </div>
+
+        <div class="settings-info-card">
+          <div class="settings-info-icon" style="background:rgba(203,166,247,.15);color:#cba6f7">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="settings-info-content">
+            <div class="settings-info-label" id="lbl-admin-user">管理员账号</div>
+            <div class="settings-info-value" id="settings-admin-user">-</div>
+          </div>
+        </div>
+
+        <div class="settings-info-card">
+          <div class="settings-info-icon" style="background:rgba(249,226,175,.15);color:#f9e2af">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3z"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+          <div class="settings-info-content">
+            <div class="settings-info-label" id="lbl-getui-status">个推状态</div>
+            <div class="settings-info-value" id="settings-getui-status">-</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Sections -->
+      <div class="settings-sections">
+        <!-- Server Settings -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="settings-section-icon" style="background:rgba(137,180,250,.15);color:#89b4fa">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+            <div>
+              <h3 id="settings-edit-title">服务器设置</h3>
+              <p class="settings-section-desc">修改服务器名称、端口和管理员账号</p>
+            </div>
+          </div>
+          <div class="settings-form">
+            <div class="settings-form-row">
+              <div class="settings-form-group">
+                <label id="lbl-edit-server-name">服务器名称</label>
+                <input type="text" id="editServerName" placeholder="HutaomuChat">
+              </div>
+              <div class="settings-form-group">
+                <label id="lbl-edit-server-port">端口</label>
+                <input type="number" id="editServerPort" placeholder="3000">
+              </div>
+            </div>
+            <div class="settings-form-row">
+              <div class="settings-form-group">
+                <label id="lbl-edit-admin-user">管理员账号</label>
+                <input type="text" id="editAdminUser" placeholder="admin">
+              </div>
+              <div class="settings-form-group">
+                <label id="lbl-edit-admin-pass">管理员密码</label>
+                <input type="password" id="editAdminPass" placeholder="留空不修改">
+              </div>
+            </div>
+            <div class="settings-form-row">
+              <div class="settings-form-group" style="flex:1">
+                <label id="lbl-edit-jwt-secret">JWT 密钥</label>
+                <input type="text" id="editJwtSecret" placeholder="留空则保持原有">
+              </div>
+            </div>
+            <div class="settings-form-actions">
+              <button class="btn primary" onclick="saveServerSettings()" id="btn-save-settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                保存设置
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- GeTui Config -->
+        <div class="settings-section">
+          <div class="settings-section-header">
+            <div class="settings-section-icon" style="background:rgba(249,226,175,.15);color:#f9e2af">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3z"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div>
+              <h3 id="settings-getui-title">个推配置</h3>
+              <p class="settings-section-desc" id="settings-getui-desc">配置个推 UniPush 实现系统级推送通知</p>
+            </div>
+          </div>
+          <div class="settings-form">
+            <div class="settings-form-row">
+              <div class="settings-form-group">
+                <label id="lbl-getui-appid">AppID</label>
+                <input type="text" id="editGetuiAppId" placeholder="个推 AppID">
+              </div>
+              <div class="settings-form-group">
+                <label id="lbl-getui-appkey">AppKey</label>
+                <input type="text" id="editGetuiAppKey" placeholder="个推 AppKey">
+              </div>
+              <div class="settings-form-group">
+                <label id="lbl-getui-master">MasterSecret</label>
+                <input type="password" id="editGetuiMasterSecret" placeholder="个推 MasterSecret">
+              </div>
+            </div>
+            <div class="settings-form-actions">
+              <button class="btn primary" onclick="saveGetuiConfig()" id="btn-save-getui">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                保存个推配置
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="settings-section settings-danger">
+          <div class="settings-section-header">
+            <div class="settings-section-icon" style="background:rgba(243,139,168,.15);color:#f38ba8">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div>
+              <h3 id="settings-danger-title">危险操作</h3>
+              <p class="settings-section-desc" id="settings-danger-desc">以下操作不可逆，请谨慎操作</p>
+            </div>
+          </div>
+
+          <div class="settings-danger-grid">
+            <!-- Restart -->
+            <div class="settings-danger-card">
+              <div class="settings-danger-card-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="color:var(--info)"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                <h4 id="settings-restart-title">重启服务端</h4>
+              </div>
+              <p id="settings-restart-desc">发送重启信号，服务端将自动重启</p>
+              <button class="btn" onclick="restartServer()" id="btn-restart">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                重启服务端
+              </button>
+            </div>
+
+            <!-- Reset -->
+            <div class="settings-danger-card settings-danger-card-red">
+              <div class="settings-danger-card-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20" style="color:var(--danger)"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                <h4 id="settings-reset-title">格式化服务端</h4>
+              </div>
+              <p id="settings-reset-desc">清除所有数据（用户、聊天、动态等），此操作不可逆！</p>
+              <div class="settings-reset-form">
+                <input type="text" id="resetConfirm" placeholder="输入 RESET_ALL_DATA">
+                <button class="btn danger" onclick="resetServer()" id="btn-reset">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  格式化
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -932,6 +1280,24 @@ const I18N = {
     log_post_announcement: '发布公告', log_at_all: '@全体成员',
     no_logs: '暂无日志', log_file_not_exist: '日志文件不存在',
     log_style_terminal: '终端样式', log_style_card: '卡片样式',
+    // Settings
+    'nav-settings': '服务端设置', 'title-settings': '服务端设置',
+    settings_server_info: '服务器信息', settings_server_name: '服务器名称', settings_server_port: '端口',
+    settings_admin_user: '管理员账号', settings_getui_status: '个推状态',
+    settings_edit_title: '修改设置', settings_edit_server_name: '服务器名称',
+    settings_edit_server_port: '端口', settings_edit_admin_user: '管理员账号',
+    settings_edit_admin_pass: '管理员密码（留空不修改）', settings_edit_jwt_secret: 'JWT 密钥（留空不修改）',
+    settings_save: '保存设置', settings_saved: '设置已保存',
+    settings_getui_title: '个推配置', settings_getui_desc: '配置个推 UniPush 实现系统级推送通知',
+    settings_getui_appid: 'AppID', settings_getui_appkey: 'AppKey', settings_getui_master: 'MasterSecret',
+    settings_save_getui: '保存个推配置', settings_getui_saved: '个推配置已保存',
+    settings_danger_title: '⚠️ 危险操作', settings_danger_desc: '以下操作不可逆，请谨慎操作',
+    settings_restart_title: '重启服务端', settings_restart_desc: '发送重启信号，服务端将自动重启（需要进程管理器支持）',
+    settings_restart_btn: '重启服务端', settings_restarting: '重启中...',
+    settings_reset_title: '格式化服务端', settings_reset_desc: '清除所有数据（用户、聊天、动态等），此操作不可逆！',
+    settings_reset_confirm_ph: '输入 RESET_ALL_DATA', settings_reset_btn: '格式化',
+    settings_reset_confirm: '确定要格式化服务端吗？所有数据将被清除！', settings_reset_success: '服务端已格式化',
+    settings_getui_active: '已配置', settings_getui_inactive: '未配置',
     // Misc
     system: '系统', unknown: '未知', image: '图片',
     dark_mode: '深色模式', light_mode: '浅色模式',
@@ -1017,6 +1383,24 @@ const I18N = {
     log_post_announcement: 'Post Announcement', log_at_all: '@All',
     no_logs: 'No logs', log_file_not_exist: 'Log file not found',
     log_style_terminal: 'Terminal Style', log_style_card: 'Card Style',
+    // Settings
+    'nav-settings': 'Server Settings', 'title-settings': 'Server Settings',
+    settings_server_info: 'Server Info', settings_server_name: 'Server Name', settings_server_port: 'Port',
+    settings_admin_user: 'Admin User', settings_getui_status: 'GeTui Status',
+    settings_edit_title: 'Edit Settings', settings_edit_server_name: 'Server Name',
+    settings_edit_server_port: 'Port', settings_edit_admin_user: 'Admin User',
+    settings_edit_admin_pass: 'Admin Password (leave empty to keep)', settings_edit_jwt_secret: 'JWT Secret (leave empty to keep)',
+    settings_save: 'Save Settings', settings_saved: 'Settings saved',
+    settings_getui_title: 'GeTui Configuration', settings_getui_desc: 'Configure GeTui UniPush for system-level push notifications',
+    settings_getui_appid: 'AppID', settings_getui_appkey: 'AppKey', settings_getui_master: 'MasterSecret',
+    settings_save_getui: 'Save GeTui Config', settings_getui_saved: 'GeTui config saved',
+    settings_danger_title: '⚠️ Danger Zone', settings_danger_desc: 'These actions are irreversible, proceed with caution',
+    settings_restart_title: 'Restart Server', settings_restart_desc: 'Send restart signal, server will restart automatically (requires process manager)',
+    settings_restart_btn: 'Restart Server', settings_restarting: 'Restarting...',
+    settings_reset_title: 'Reset Server', settings_reset_desc: 'Clear all data (users, chats, moments, etc.), this cannot be undone!',
+    settings_reset_confirm_ph: 'Type RESET_ALL_DATA', settings_reset_btn: 'Reset',
+    settings_reset_confirm: 'Are you sure you want to reset the server? All data will be cleared!', settings_reset_success: 'Server has been reset',
+    settings_getui_active: 'Configured', settings_getui_inactive: 'Not Configured',
     system: 'System', unknown: 'Unknown', image: 'Image',
     dark_mode: 'Dark Mode', light_mode: 'Light Mode',
   }
@@ -1040,7 +1424,7 @@ function setLang(l) {
   const active = document.querySelector('.page.active');
   if (active) {
     const id = active.id.replace('page-', '');
-    const loaders = { dashboard: loadDashboard, users: loadUsers, chats: loadChats, moments: loadMoments, joinreq: loadJoinRequests, announcements: loadAnnouncements, system: loadSystem, logs: loadLogStats };
+    const loaders = { dashboard: loadDashboard, users: loadUsers, chats: loadChats, moments: loadMoments, joinreq: loadJoinRequests, announcements: loadAnnouncements, system: loadSystem, logs: loadLogStats, settings: loadSettings };
     if (loaders[id]) loaders[id]();
   }
 }
@@ -1132,6 +1516,85 @@ function applyStaticI18n() {
   if (systemLogCommand) systemLogCommand.placeholder = lang === 'zh' ? '输入命令 (refresh/clear/filter/help)...' : 'Enter command (refresh/clear/filter/help)...';
   const btnToggleView = document.getElementById('btnToggleView');
   if (btnToggleView) btnToggleView.textContent = logViewMode;
+  // Settings page
+  const titleSettings = document.getElementById('title-settings');
+  if (titleSettings) titleSettings.textContent = t('title-settings');
+  const navSettings = document.getElementById('nav-settings');
+  if (navSettings) navSettings.textContent = t('nav-settings');
+  const settingsServerInfo = document.getElementById('settings-server-info');
+  if (settingsServerInfo) settingsServerInfo.textContent = t('settings_server_info');
+  const lblServerName = document.getElementById('lbl-server-name');
+  if (lblServerName) lblServerName.textContent = t('settings_server_name');
+  const lblServerPort = document.getElementById('lbl-server-port');
+  if (lblServerPort) lblServerPort.textContent = t('settings_server_port');
+  const lblAdminUser = document.getElementById('lbl-admin-user');
+  if (lblAdminUser) lblAdminUser.textContent = t('settings_admin_user');
+  const lblGetuiStatus = document.getElementById('lbl-getui-status');
+  if (lblGetuiStatus) lblGetuiStatus.textContent = t('settings_getui_status');
+  const settingsEditTitle = document.getElementById('settings-edit-title');
+  if (settingsEditTitle) settingsEditTitle.textContent = t('settings_edit_title');
+  const lblEditServerName = document.getElementById('lbl-edit-server-name');
+  if (lblEditServerName) lblEditServerName.textContent = t('settings_edit_server_name');
+  const lblEditServerPort = document.getElementById('lbl-edit-server-port');
+  if (lblEditServerPort) lblEditServerPort.textContent = t('settings_edit_server_port');
+  const lblEditAdminUser = document.getElementById('lbl-edit-admin-user');
+  if (lblEditAdminUser) lblEditAdminUser.textContent = t('settings_edit_admin_user');
+  const lblEditAdminPass = document.getElementById('lbl-edit-admin-pass');
+  if (lblEditAdminPass) lblEditAdminPass.textContent = t('settings_edit_admin_pass');
+  const lblEditJwtSecret = document.getElementById('lbl-edit-jwt-secret');
+  if (lblEditJwtSecret) lblEditJwtSecret.textContent = t('settings_edit_jwt_secret');
+  const btnSaveSettings = document.getElementById('btn-save-settings');
+  if (btnSaveSettings) {
+    const svg = btnSaveSettings.querySelector('svg');
+    btnSaveSettings.innerHTML = '';
+    if (svg) btnSaveSettings.appendChild(svg);
+    btnSaveSettings.appendChild(document.createTextNode(t('settings_save')));
+  }
+  const settingsGetuiTitle = document.getElementById('settings-getui-title');
+  if (settingsGetuiTitle) settingsGetuiTitle.textContent = t('settings_getui_title');
+  const settingsGetuiDesc = document.getElementById('settings-getui-desc');
+  if (settingsGetuiDesc) settingsGetuiDesc.textContent = t('settings_getui_desc');
+  const lblGetuiAppId = document.getElementById('lbl-getui-appid');
+  if (lblGetuiAppId) lblGetuiAppId.textContent = t('settings_getui_appid');
+  const lblGetuiAppKey = document.getElementById('lbl-getui-appkey');
+  if (lblGetuiAppKey) lblGetuiAppKey.textContent = t('settings_getui_appkey');
+  const lblGetuiMaster = document.getElementById('lbl-getui-master');
+  if (lblGetuiMaster) lblGetuiMaster.textContent = t('settings_getui_master');
+  const btnSaveGetui = document.getElementById('btn-save-getui');
+  if (btnSaveGetui) {
+    const svg = btnSaveGetui.querySelector('svg');
+    btnSaveGetui.innerHTML = '';
+    if (svg) btnSaveGetui.appendChild(svg);
+    btnSaveGetui.appendChild(document.createTextNode(t('settings_save_getui')));
+  }
+  const settingsDangerTitle = document.getElementById('settings-danger-title');
+  if (settingsDangerTitle) settingsDangerTitle.textContent = t('settings_danger_title');
+  const settingsDangerDesc = document.getElementById('settings-danger-desc');
+  if (settingsDangerDesc) settingsDangerDesc.textContent = t('settings_danger_desc');
+  const settingsRestartTitle = document.getElementById('settings-restart-title');
+  if (settingsRestartTitle) settingsRestartTitle.textContent = t('settings_restart_title');
+  const settingsRestartDesc = document.getElementById('settings-restart-desc');
+  if (settingsRestartDesc) settingsRestartDesc.textContent = t('settings_restart_desc');
+  const btnRestart = document.getElementById('btn-restart');
+  if (btnRestart) {
+    const svg = btnRestart.querySelector('svg');
+    btnRestart.innerHTML = '';
+    if (svg) btnRestart.appendChild(svg);
+    btnRestart.appendChild(document.createTextNode(t('settings_restart_btn')));
+  }
+  const settingsResetTitle = document.getElementById('settings-reset-title');
+  if (settingsResetTitle) settingsResetTitle.textContent = t('settings_reset_title');
+  const settingsResetDesc = document.getElementById('settings-reset-desc');
+  if (settingsResetDesc) settingsResetDesc.textContent = t('settings_reset_desc');
+  const resetConfirm = document.getElementById('resetConfirm');
+  if (resetConfirm) resetConfirm.placeholder = t('settings_reset_confirm_ph');
+  const btnReset = document.getElementById('btn-reset');
+  if (btnReset) {
+    const svg = btnReset.querySelector('svg');
+    btnReset.innerHTML = '';
+    if (svg) btnReset.appendChild(svg);
+    btnReset.appendChild(document.createTextNode(t('settings_reset_btn')));
+  }
   // Theme label
   const themeLabel = document.getElementById('themeLabel');
   if (themeLabel) themeLabel.textContent = currentTheme === 'light' ? t('light_mode') : t('dark_mode');
@@ -1931,6 +2394,148 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('logFileDate').value = today;
   }
 });
+
+// ========== Settings ==========
+function loadSettings() {
+  apiFetch('/settings').then(d => {
+    document.getElementById('settings-server-name').textContent = d.serverName || '-';
+    document.getElementById('settings-server-port').textContent = d.serverPort || '-';
+    document.getElementById('settings-admin-user').textContent = d.adminUser || '-';
+    document.getElementById('settings-getui-status').innerHTML = d.getuiConfigured
+      ? `<span class="badge online">${t('settings_getui_active')}</span>`
+      : `<span class="badge offline">${t('settings_getui_inactive')}</span>`;
+
+    // Fill edit form
+    document.getElementById('editServerName').value = d.serverName || '';
+    document.getElementById('editServerPort').value = d.serverPort || '';
+    document.getElementById('editAdminUser').value = d.adminUser || '';
+    document.getElementById('editAdminPass').value = '';
+    document.getElementById('editJwtSecret').value = '';
+  });
+
+  // Load GeTui config
+  apiFetch('/system').then(d => {
+    // GeTui config is checked via system info
+  });
+}
+
+function saveServerSettings() {
+  const serverName = document.getElementById('editServerName').value;
+  const serverPort = document.getElementById('editServerPort').value;
+  const adminUser = document.getElementById('editAdminUser').value;
+  const adminPass = document.getElementById('editAdminPass').value;
+  const jwtSecret = document.getElementById('editJwtSecret').value;
+
+  const data = {};
+  if (serverName) data.serverName = serverName;
+  if (serverPort) data.serverPort = serverPort;
+  if (adminUser) data.adminUser = adminUser;
+  if (adminPass) data.adminPass = adminPass;
+  if (jwtSecret) data.jwtSecret = jwtSecret;
+
+  apiFetch('/settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(d => {
+    if (d.success) {
+      toast(t('settings_saved'));
+      loadSettings();
+      // Clear password fields
+      document.getElementById('editAdminPass').value = '';
+      document.getElementById('editJwtSecret').value = '';
+    } else {
+      toast(d.error || 'Error', 'error');
+    }
+  });
+}
+
+function saveGetuiConfig() {
+  const appId = document.getElementById('editGetuiAppId').value;
+  const appKey = document.getElementById('editGetuiAppKey').value;
+  const masterSecret = document.getElementById('editGetuiMasterSecret').value;
+
+  if (!appId || !appKey || !masterSecret) {
+    toast(lang === 'zh' ? '请填写所有字段' : 'Please fill all fields', 'error');
+    return;
+  }
+
+  apiFetch('/settings/getui', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ appId, appKey, masterSecret })
+  }).then(d => {
+    if (d.success) {
+      toast(t('settings_getui_saved'));
+      document.getElementById('editGetuiAppId').value = '';
+      document.getElementById('editGetuiAppKey').value = '';
+      document.getElementById('editGetuiMasterSecret').value = '';
+      loadSettings();
+    } else {
+      toast(d.error || 'Error', 'error');
+    }
+  });
+}
+
+function restartServer() {
+  if (!confirm(lang === 'zh' ? '确定要重启服务端吗？' : 'Are you sure you want to restart the server?')) {
+    return;
+  }
+
+  const btn = document.getElementById('btn-restart');
+  btn.textContent = t('settings_restarting');
+  btn.disabled = true;
+
+  apiFetch('/settings/restart', { method: 'POST' }).then(d => {
+    if (d.success) {
+      toast(d.message);
+      // Try to reconnect after 3 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+    } else {
+      toast(d.error || 'Error', 'error');
+      btn.textContent = t('settings_restart_btn');
+      btn.disabled = false;
+    }
+  });
+}
+
+function resetServer() {
+  const confirmCode = document.getElementById('resetConfirm').value;
+
+  if (confirmCode !== 'RESET_ALL_DATA') {
+    toast(lang === 'zh' ? '请输入正确的确认码: RESET_ALL_DATA' : 'Please enter the correct confirmation code: RESET_ALL_DATA', 'error');
+    return;
+  }
+
+  if (!confirm(t('settings_reset_confirm'))) {
+    return;
+  }
+
+  const btn = document.getElementById('btn-reset');
+  btn.textContent = lang === 'zh' ? '格式化中...' : 'Resetting...';
+  btn.disabled = true;
+
+  apiFetch('/settings/reset', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirm: confirmCode })
+  }).then(d => {
+    if (d.success) {
+      toast(t('settings_reset_success'));
+      document.getElementById('resetConfirm').value = '';
+      // Reload after 2 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } else {
+      toast(d.error || 'Error', 'error');
+      btn.textContent = t('settings_reset_btn');
+      btn.disabled = false;
+    }
+  });
+}
 </script>
 </body>
 </html>
