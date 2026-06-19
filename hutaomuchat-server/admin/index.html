@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HutaomuChat 管理后台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f1117;--card:#1a1d29;--card2:#232736;--border:#2d3348;--primary:#6c5ce7;--primary-light:#a29bfe;--text:#e2e8f0;--text2:#94a3b8;--success:#10b981;--danger:#ef4444;--warning:#f59e0b;--info:#3b82f6}
+[data-theme="light"]{--bg:#f0f2f5;--card:#ffffff;--card2:#f8f9fb;--border:#e2e8f0;--primary:#6c5ce7;--primary-light:#5b4cdb;--text:#1e293b;--text2:#64748b;--success:#059669;--danger:#dc2626;--warning:#d97706;--info:#2563eb}
+[data-theme="light"] body{background:var(--bg)}
+[data-theme="light"] .login-box,[data-theme="light"] .sidebar,[data-theme="light"] .stat-card,[data-theme="light"] .chart-card,[data-theme="light"] .modal,[data-theme="light"] .sys-card,[data-theme="light"] .chat-split,[data-theme="light"] table,[data-theme="light"] .moment-card{box-shadow:0 1px 3px rgba(0,0,0,.08)}
+[data-theme="light"] .badge.online{background:rgba(5,150,105,.1)}
+[data-theme="light"] .badge.offline{background:rgba(100,116,139,.1)}
+[data-theme="light"] .badge.banned{background:rgba(220,38,38,.1)}
+[data-theme="light"] .badge.group{background:rgba(37,99,235,.1)}
+[data-theme="light"] .badge.single{background:rgba(217,119,6,.1)}
+[data-theme="light"] .badge.pending{background:rgba(217,119,6,.1)}
+[data-theme="light"] .badge.accepted{background:rgba(5,150,105,.1)}
+[data-theme="light"] .badge.rejected{background:rgba(220,38,38,.1)}
+[data-theme="light"] .chat-card.active{background:var(--primary);color:#fff}
+[data-theme="light"] .chat-card.active .chat-card-sub{color:rgba(255,255,255,.8)}
+[data-theme="light"] tr:hover td{background:rgba(108,92,231,.04)}
+[data-theme="light"] .msg-list,[data-theme="light"] .chat-msg-area{background:var(--card2)}
+[data-theme="light"] .modal-overlay{background:rgba(0,0,0,.3)}
+[data-theme="light"] .toast.success{background:#059669}
+[data-theme="light"] .toast.error{background:#dc2626}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
+a{color:var(--primary-light);text-decoration:none}
+
+/* Login */
+.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:48px;width:400px;text-align:center}
+.login-box h1{font-size:24px;margin-bottom:8px;color:var(--primary-light)}
+.login-box p{color:var(--text2);margin-bottom:32px;font-size:14px}
+.login-box input{width:100%;padding:12px 16px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;margin-bottom:16px;outline:none;transition:border .2s}
+.login-box input:focus{border-color:var(--primary)}
+.login-box button{width:100%;padding:12px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .2s}
+.login-box button:hover{opacity:.9}
+.login-err{color:var(--danger);font-size:13px;margin-bottom:16px;display:none}
+.login-lang{position:absolute;top:24px;right:32px}
+
+/* Layout */
+.app{display:none;height:100vh}
+.sidebar{width:240px;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:10}
+.sidebar-brand{padding:24px 20px;border-bottom:1px solid var(--border)}
+.sidebar-brand h2{font-size:18px;color:var(--primary-light)}
+.sidebar-brand span{font-size:12px;color:var(--text2)}
+.sidebar-nav{flex:1;padding:12px 0}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;color:var(--text2);transition:all .2s;font-size:14px;border-left:3px solid transparent}
+.nav-item:hover{background:var(--card2);color:var(--text)}
+.nav-item.active{background:var(--card2);color:var(--primary-light);border-left-color:var(--primary)}
+.nav-item svg{width:20px;height:20px;flex-shrink:0}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.sidebar-footer button{width:100%;padding:8px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-size:13px;transition:all .2s}
+.sidebar-footer button:hover{border-color:var(--danger);color:var(--danger)}
+.lang-switch{display:flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.lang-btn{flex:1;padding:6px 0;background:transparent;border:none;color:var(--text2);cursor:pointer;font-size:12px;transition:all .2s}
+.lang-btn.active{background:var(--primary);color:#fff}
+.main{margin-left:240px;padding:24px 32px;min-height:100vh}
+.page{display:none}
+.page.active{display:block}
+.page-title{font-size:22px;font-weight:700;margin-bottom:24px}
+
+/* Cards */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.stat-card .label{font-size:13px;color:var(--text2);margin-bottom:4px}
+.stat-card .value{font-size:28px;font-weight:700}
+.stat-card .sub{font-size:12px;color:var(--text2);margin-top:4px}
+.stat-card.purple .value{color:var(--primary-light)}
+.stat-card.green .value{color:var(--success)}
+.stat-card.blue .value{color:var(--info)}
+.stat-card.orange .value{color:var(--warning)}
+
+/* Table */
+.toolbar{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.toolbar input,.toolbar select{padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;outline:none}
+.toolbar input:focus,.toolbar select:focus{border-color:var(--primary)}
+.toolbar input{min-width:240px}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+th{background:var(--card2);text-align:left;padding:12px 16px;font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+td{padding:12px 16px;border-top:1px solid var(--border);font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:hover td{background:rgba(108,92,231,.05)}
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge.online{background:rgba(16,185,129,.15);color:var(--success)}
+.badge.offline{background:rgba(148,163,184,.15);color:var(--text2)}
+.badge.group{background:rgba(59,130,246,.15);color:var(--info)}
+.badge.single{background:rgba(245,158,11,.15);color:var(--warning)}
+.badge.banned{background:rgba(239,68,68,.15);color:var(--danger)}
+.badge.pending{background:rgba(245,158,11,.15);color:var(--warning)}
+.badge.accepted{background:rgba(16,185,129,.15);color:var(--success)}
+.badge.rejected{background:rgba(239,68,68,.15);color:var(--danger)}
+.btn{padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--text);font-size:12px;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn:hover{border-color:var(--primary);color:var(--primary-light)}
+.btn.danger:hover{border-color:var(--danger);color:var(--danger)}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn.primary:hover{opacity:.85}
+.btn-group{display:flex;gap:6px}
+.pagination{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:16px}
+.pagination button{padding:6px 14px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text2);cursor:pointer;font-size:13px}
+.pagination button:hover{border-color:var(--primary)}
+.pagination button:disabled{opacity:.4;cursor:default}
+.pagination span{color:var(--text2);font-size:13px}
+.avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;background:var(--card2)}
+
+/* Charts */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.chart-card h3{font-size:14px;color:var(--text2);margin-bottom:16px}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:140px;padding-top:10px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar{background:var(--primary);border-radius:4px 4px 0 0;width:100%;min-height:2px;transition:height .5s}
+.bar-label{font-size:10px;color:var(--text2)}
+.bar-value{font-size:10px;color:var(--text2)}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px;width:500px;max-width:90vw;max-height:80vh;overflow-y:auto}
+.modal h3{margin-bottom:20px;font-size:18px}
+.modal label{display:block;font-size:13px;color:var(--text2);margin-bottom:4px;margin-top:12px}
+.modal input,.modal select{width:100%;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;outline:none}
+.modal input:focus{border-color:var(--primary)}
+.modal-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:24px}
+
+/* Messages panel */
+.msg-list{max-height:500px;overflow-y:auto;padding:16px;background:var(--card2);border-radius:8px;margin-top:16px}
+.msg-item{padding:10px 0;border-bottom:1px solid var(--border)}
+.msg-item:last-child{border-bottom:none}
+.msg-meta{font-size:11px;color:var(--text2);margin-bottom:4px}
+.msg-meta strong{color:var(--primary-light)}
+.msg-content{font-size:13px;word-break:break-all}
+.msg-content img{max-width:200px;max-height:120px;border-radius:6px;margin-top:4px}
+
+/* System info */
+.sys-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.sys-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.sys-card h3{font-size:15px;margin-bottom:12px;color:var(--primary-light)}
+.sys-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.sys-row:last-child{border-bottom:none}
+.sys-row .k{color:var(--text2)}
+.sys-row .v{font-weight:600}
+.file-list{max-height:300px;overflow-y:auto}
+.file-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.file-item:last-child{border-bottom:none}
+.file-name{color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:12px}
+.file-size{color:var(--text2);margin-right:12px;flex-shrink:0}
+
+/* Toast */
+.toast{position:fixed;top:24px;right:24px;padding:12px 24px;border-radius:8px;font-size:14px;z-index:200;animation:fadeIn .3s;color:#fff}
+.toast.success{background:var(--success)}
+.toast.error{background:var(--danger)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Chat split layout */
+.chat-split{display:flex;gap:0;height:calc(100vh - 160px);border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--card)}
+.chat-left{width:360px;min-width:280px;border-right:1px solid var(--border);display:flex;flex-direction:column}
+.chat-left-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chat-left-header input{flex:1;min-width:120px;padding:8px 12px;background:var(--card2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;outline:none}
+.chat-left-header input:focus{border-color:var(--primary)}
+.chat-left-header select{padding:6px 8px;background:var(--card2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px}
+.chat-list{flex:1;overflow-y:auto;padding:8px}
+.chat-card{padding:12px;border-radius:8px;cursor:pointer;transition:background .2s;display:flex;gap:10px;align-items:center;margin-bottom:4px}
+.chat-card:hover{background:var(--card2)}
+.chat-card.active{background:var(--primary);color:#fff}
+.chat-card.active .chat-card-sub{color:rgba(255,255,255,.7)}
+.chat-card-icon{width:40px;height:40px;border-radius:10px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.chat-card.active .chat-card-icon{background:rgba(255,255,255,.2)}
+.chat-card-info{flex:1;overflow:hidden}
+.chat-card-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-card-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.chat-right{flex:1;display:flex;flex-direction:column}
+.chat-right-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.chat-right-header h3{font-size:15px}
+.chat-right-header .chat-meta{font-size:12px;color:var(--text2)}
+.chat-msg-area{flex:1;overflow-y:auto;padding:16px}
+.chat-empty{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text2);font-size:14px}
+
+/* Moments detail */
+.moment-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.moment-header{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.moment-body{font-size:14px;line-height:1.6;margin-bottom:12px;word-break:break-word}
+.moment-images{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.moment-images img{max-width:200px;max-height:150px;border-radius:8px;object-fit:cover;cursor:pointer}
+.moment-likes{display:flex;gap:6px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--border);font-size:12px;color:var(--primary-light)}
+.moment-comments{border-top:1px solid var(--border);padding-top:8px}
+.moment-comment{padding:6px 0;font-size:13px;border-bottom:1px solid var(--border)}
+.moment-comment:last-child{border-bottom:none}
+.moment-comment strong{color:var(--primary-light)}
+.moment-comment .mc-time{font-size:11px;color:var(--text2);margin-left:8px}
+
+@media(max-width:768px){
+  .sidebar{width:60px}
+  .sidebar-brand span,.nav-item span,.sidebar-footer{display:none}
+  .sidebar-brand h2{font-size:14px;text-align:center}
+  .nav-item{justify-content:center;padding:14px 0;border-left:none;border-right:3px solid transparent}
+  .nav-item.active{border-left:none;border-right-color:var(--primary)}
+  .main{margin-left:60px;padding:16px}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .chart-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-wrap" id="loginScreen">
+  <div class="login-lang">
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="toggleTheme()" id="loginThemeBtn" style="padding:6px 10px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-size:14px" title="切换主题">&#9789;</button>
+      <div class="lang-switch">
+        <button class="lang-btn active" onclick="setLang('zh')">中文</button>
+        <button class="lang-btn" onclick="setLang('en')">EN</button>
+      </div>
+    </div>
+  </div>
+  <div class="login-box">
+    <h1>HutaomuChat</h1>
+    <p id="loginSubtitle">服务端管理后台</p>
+    <div class="login-err" id="loginErr"></div>
+    <input type="text" id="loginUser" placeholder="用户名" autocomplete="username">
+    <input type="password" id="loginPass" placeholder="密码" autocomplete="current-password">
+    <button onclick="doLogin()" id="loginBtn">登 录</button>
+  </div>
+  <p style="color:var(--text2);font-size:11px;margin-top:16px;text-align:center">
+    HutaomuChat Server &copy; 2026 qiuxi903 &middot;
+    <a href="https://github.com/qiuxi903/hutaomuchat-server" target="_blank" style="color:var(--primary-light)">AGPL-3.0 开源</a>
+  </p>
+</div>
+
+<!-- App Layout -->
+<div class="app" id="app">
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <h2>HutaomuChat</h2>
+      <span id="brandSub">管理后台</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" data-page="dashboard" onclick="switchPage('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span id="nav-dashboard">仪表盘</span>
+      </div>
+      <div class="nav-item" data-page="users" onclick="switchPage('users')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span id="nav-users">用户管理</span>
+      </div>
+      <div class="nav-item" data-page="chats" onclick="switchPage('chats')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span id="nav-chats">聊天管理</span>
+      </div>
+      <div class="nav-item" data-page="moments" onclick="switchPage('moments')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span id="nav-moments">朋友圈</span>
+      </div>
+      <div class="nav-item" data-page="joinreq" onclick="switchPage('joinreq')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <span id="nav-joinreq">入群申请</span>
+      </div>
+      <div class="nav-item" data-page="announcements" onclick="switchPage('announcements')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
+        <span id="nav-announcements">群公告</span>
+      </div>
+      <div class="nav-item" data-page="system" onclick="switchPage('system')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span id="nav-system">系统信息</span>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="lang-switch">
+        <button class="lang-btn active" id="langZh" onclick="setLang('zh')">中文</button>
+        <button class="lang-btn" id="langEn" onclick="setLang('en')">EN</button>
+      </div>
+      <button onclick="toggleTheme()" id="themeBtn" style="display:flex;align-items:center;justify-content:center;gap:6px">
+        <span id="themeIcon" style="font-size:16px">&#9789;</span>
+        <span id="themeLabel">深色模式</span>
+      </button>
+      <a href="https://github.com/qiuxi903/hutaomuchat-server" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:6px;border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:12px;text-decoration:none;transition:all .2s" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary-light)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'" id="openSourceLink">AGPL-3.0 开源</a>
+      <button onclick="doLogout()" id="logoutBtn">退出登录</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Global Auto-refresh Toolbar -->
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px">
+      <label style="font-size:13px;color:var(--text2);display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap">
+        <input type="checkbox" id="autoRefreshToggle" checked onchange="toggleAutoRefresh()" style="accent-color:var(--primary)">
+        <span id="lbl-auto-refresh">自动刷新</span>
+      </label>
+      <select id="refreshInterval" onchange="toggleAutoRefresh()" style="padding:4px 8px;background:var(--card2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px">
+        <option value="3">3s</option>
+        <option value="5">5s</option>
+        <option value="10" selected>10s</option>
+        <option value="30">30s</option>
+      </select>
+      <span id="lastUpdateTime" style="font-size:12px;color:var(--text2);margin-left:auto"></span>
+      <span id="onlineIndicator" style="font-size:12px;color:var(--success);display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block;animation:pulse 2s infinite"></span><span id="onlineCount">0</span> <span id="lbl-online">在线</span></span>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <h2 class="page-title" id="title-dashboard">仪表盘</h2>
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="chart-grid">
+        <div class="chart-card"><h3 id="chart-msg">消息数量（近7天）</h3><div class="bar-chart" id="msgChart"></div></div>
+        <div class="chart-card"><h3 id="chart-reg">新注册用户（近7天）</h3><div class="bar-chart" id="regChart"></div></div>
+      </div>
+      <div class="chart-card">
+        <h3 id="chart-type">消息类型分布</h3>
+        <div id="msgTypeChart" style="display:flex;gap:12px;flex-wrap:wrap;margin-top:12px"></div>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div class="page" id="page-users">
+      <h2 class="page-title" id="title-users">用户管理</h2>
+      <div class="toolbar">
+        <input type="text" id="userSearch" placeholder="搜索昵称、手机号、UID..." oninput="debounce(loadUsers, 300)">
+        <button class="btn primary" onclick="loadUsers()" id="btn-search-user">搜索</button>
+      </div>
+      <table>
+        <thead><tr id="userThead"></tr></thead>
+        <tbody id="userTable"></tbody>
+      </table>
+      <div class="pagination" id="userPagination"></div>
+    </div>
+
+    <!-- Chats -->
+    <div class="page" id="page-chats">
+      <h2 class="page-title" id="title-chats">聊天 / 群组管理</h2>
+      <div class="chat-split">
+        <div class="chat-left">
+          <div class="chat-left-header">
+            <input type="text" id="chatSearch" placeholder="搜索..." oninput="loadChatList()">
+            <select id="chatType" onchange="loadChatList()">
+              <option value="" id="opt-all">全部</option>
+              <option value="GROUP" id="opt-group">群聊</option>
+              <option value="SINGLE" id="opt-single">私聊</option>
+            </select>
+          </div>
+          <div class="chat-list" id="chatList"></div>
+        </div>
+        <div class="chat-right">
+          <div class="chat-right-header" id="chatRightHeader" style="display:none">
+            <div>
+              <h3 id="chatRightName"></h3>
+              <span class="chat-meta" id="chatRightMeta"></span>
+            </div>
+            <div class="btn-group">
+              <button class="btn danger" id="chatDeleteBtn" onclick="deleteSelectedChat()"></button>
+            </div>
+          </div>
+          <div class="chat-msg-area" id="chatMsgArea">
+            <div class="chat-empty" id="chatEmptyMsg"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Moments -->
+    <div class="page" id="page-moments">
+      <h2 class="page-title" id="title-moments">朋友圈管理</h2>
+      <div id="momentsList"></div>
+      <div class="pagination" id="momentPagination"></div>
+    </div>
+
+    <!-- Join Requests -->
+    <div class="page" id="page-joinreq">
+      <h2 class="page-title" id="title-joinreq">入群申请</h2>
+      <table>
+        <thead><tr id="joinReqThead"></tr></thead>
+        <tbody id="joinReqTable"></tbody>
+      </table>
+    </div>
+
+    <!-- Announcements -->
+    <div class="page" id="page-announcements">
+      <h2 class="page-title" id="title-announcements">群公告</h2>
+      <table>
+        <thead><tr id="announceThead"></tr></thead>
+        <tbody id="announceTable"></tbody>
+      </table>
+    </div>
+
+    <!-- System -->
+    <div class="page" id="page-system">
+      <h2 class="page-title" id="title-system">系统信息</h2>
+      <div class="sys-grid" id="sysGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3 id="editModalTitle">编辑用户</h3>
+    <input type="hidden" id="editUserId">
+    <label id="lbl-nickname">昵称</label>
+    <input type="text" id="editNickname">
+    <label id="lbl-signature">个性签名</label>
+    <input type="text" id="editSignature">
+    <label id="lbl-phone">手机号</label>
+    <input type="text" id="editPhone">
+    <label id="lbl-avatar">头像 URL</label>
+    <input type="text" id="editAvatar" placeholder="https://...">
+    <div id="editAvatarPreview" style="margin:4px 0 8px"></div>
+    <label id="lbl-background">背景图 URL</label>
+    <input type="text" id="editBackground" placeholder="https://...">
+    <div id="editBgPreview" style="margin:4px 0 8px"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('editModal')" id="btn-cancel">取消</button>
+      <button class="btn danger" id="editBanBtn" onclick="toggleBan()">封禁/解封</button>
+      <button class="btn primary" onclick="saveUser()" id="btn-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <h3 id="detailTitle">用户详情</h3>
+    <div id="detailContent"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('detailModal')" id="btn-close">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== i18n ==========
+const I18N = {
+  zh: {
+    // Login
+    subtitle: '服务端管理后台',
+    username: '用户名', password: '密码', login: '登 录',
+    login_failed: '用户名或密码错误', network_err: '网络错误',
+    // Nav
+    'nav-dashboard': '仪表盘', 'nav-users': '用户管理', 'nav-chats': '聊天管理',
+    'nav-moments': '朋友圈', 'nav-joinreq': '入群申请', 'nav-announcements': '群公告',
+    'nav-system': '系统信息',
+    brand_sub: '管理后台', logout: '退出登录',
+    // Dashboard
+    'title-dashboard': '仪表盘',
+    total_users: '用户总数', registered: '已注册', online_now: '当前在线',
+    ws_connections: 'WebSocket 连接', total_messages: '消息总数', today_new: '今日新增',
+    groups: '群组', chats_total: '共 {n} 个聊天', moments: '朋友圈', friendships: '好友关系',
+    pending_req: '待处理申请', offline_queue: '离线队列', pending_msgs: '待投递消息',
+    chart_msg: '消息数量（近7天）', chart_reg: '新注册用户（近7天）',
+    chart_type: '消息类型分布',
+    // Users
+    'title-users': '用户管理',
+    user_search_ph: '搜索昵称、手机号、UID...', search: '搜索',
+    th_avatar: '头像', th_uid: 'UID', th_nickname: '昵称', th_phone: '手机号',
+    th_status: '状态', th_friends: '好友', th_chats: '聊天', th_push: '推送', th_actions: '操作',
+    online: '在线', offline: '离线', banned: '已封禁',
+    push_yes: '已注册', push_no: '未注册',
+    detail: '详情', edit: '编辑', delete: '删除',
+    // Chat
+    'title-chats': '聊天 / 群组管理',
+    chat_search_ph: '搜索群名或ID...', all_types: '全部类型', group: '群聊', single: '私聊',
+    th_name: '名称', th_type: '类型', th_members: '成员', th_messages: '消息数',
+    th_owner: '创建者', th_created: '创建时间',
+    messages: '消息', no_messages: '暂无消息',
+    msg_chat_title: '聊天记录 - {name}',
+    // Moments
+    'title-moments': '朋友圈管理',
+    th_author: '作者', th_content: '内容', th_scope: '可见范围',
+    th_likes: '点赞', th_comments: '评论', th_time: '时间',
+    scope_public: '公开', scope_friends: '好友',
+    // Join Requests
+    'title-joinreq': '入群申请',
+    th_user: '用户', th_group: '群组', th_message: '留言',
+    status_pending: '待审核', status_accepted: '已通过', status_rejected: '已拒绝',
+    no_join_req: '暂无入群申请',
+    // Announcements
+    'title-announcements': '群公告',
+    th_creator: '发布者', th_at_all: '@全体',
+    at_yes: '是', no_announcements: '暂无群公告',
+    // System
+    'title-system': '系统信息',
+    server_status: '服务器状态', uptime: '运行时间', platform: '系统平台',
+    ws_conn: 'WebSocket 连接', push_status: '推送服务 (个推)',
+    push_active: '运行中', push_unconfigured: '未配置', push_error: '异常',
+    memory_usage: '内存使用',
+    heap_used: '已用堆', heap_total: '堆总量',
+    uploaded_files: '上传文件', file_count: '{n} 个文件',
+    no_files: '暂无文件',
+    // Modal
+    edit_user: '编辑用户', nickname: '昵称', signature: '个性签名', phone: '手机号',
+    avatar_url: '头像 URL', background_url: '背景图 URL',
+    cancel: '取消', save: '保存', ban: '封禁', unban: '解封',
+    auto_refresh: '自动刷新', last_updated: '最后更新',
+    user_detail: '用户详情', close: '关闭',
+    created_at: '注册时间', friends_label: '好友', chats_label: '聊天',
+    // Toast / Confirm
+    saved: '已保存', deleted: '已删除',
+    confirm_delete_user: '确定删除用户 "{name}" 吗？所有相关数据将被清除。',
+    confirm_delete_chat: '确定删除聊天 "{name}" 吗？所有消息将被清除。',
+    confirm_delete_moment: '确定删除这条动态吗？',
+    confirm_delete_announcement: '确定删除这条公告吗？',
+    confirm_delete_file: '确定删除文件 "{name}" 吗？',
+    // Pagination
+    page_info: '第 {p} / {total} 页（共 {n} 条）', prev: '上一页', next: '下一页',
+    // Misc
+    system: '系统', unknown: '未知', image: '图片',
+    dark_mode: '深色模式', light_mode: '浅色模式',
+  },
+  en: {
+    subtitle: 'Server Administration Panel',
+    username: 'Username', password: 'Password', login: 'Login',
+    login_failed: 'Invalid username or password', network_err: 'Network error',
+    'nav-dashboard': 'Dashboard', 'nav-users': 'Users', 'nav-chats': 'Chats',
+    'nav-moments': 'Moments', 'nav-joinreq': 'Join Requests', 'nav-announcements': 'Announcements',
+    'nav-system': 'System',
+    brand_sub: 'Admin Panel', logout: 'Logout',
+    'title-dashboard': 'Dashboard',
+    total_users: 'Total Users', registered: 'Registered', online_now: 'Online Now',
+    ws_connections: 'WebSocket connections', total_messages: 'Total Messages', today_new: 'Today',
+    groups: 'Groups', chats_total: '{n} chats total', moments: 'Moments', friendships: 'Friendships',
+    pending_req: 'Pending Requests', offline_queue: 'Offline Queue', pending_msgs: 'Pending messages',
+    chart_msg: 'Messages (Last 7 Days)', chart_reg: 'Registrations (Last 7 Days)',
+    chart_type: 'Message Type Distribution',
+    'title-users': 'User Management',
+    user_search_ph: 'Search by name, phone, UID...', search: 'Search',
+    th_avatar: 'Avatar', th_uid: 'UID', th_nickname: 'Nickname', th_phone: 'Phone',
+    th_status: 'Status', th_friends: 'Friends', th_chats: 'Chats', th_push: 'Push', th_actions: 'Actions',
+    online: 'Online', offline: 'Offline', banned: 'Banned',
+    push_yes: 'Yes', push_no: 'No',
+    detail: 'Detail', edit: 'Edit', delete: 'Delete',
+    'title-chats': 'Chat / Group Management',
+    chat_search_ph: 'Search by name or ID...', all_types: 'All Types', group: 'Groups', single: 'Private',
+    th_name: 'Name', th_type: 'Type', th_members: 'Members', th_messages: 'Messages',
+    th_owner: 'Owner', th_created: 'Created',
+    messages: 'Messages', no_messages: 'No messages',
+    msg_chat_title: 'Messages - {name}',
+    'title-moments': 'Moments Management',
+    th_author: 'Author', th_content: 'Content', th_scope: 'Scope',
+    th_likes: 'Likes', th_comments: 'Comments', th_time: 'Time',
+    scope_public: 'Public', scope_friends: 'Friends',
+    'title-joinreq': 'Join Requests',
+    th_user: 'User', th_group: 'Group', th_message: 'Message',
+    status_pending: 'Pending', status_accepted: 'Accepted', status_rejected: 'Rejected',
+    no_join_req: 'No join requests',
+    'title-announcements': 'Announcements',
+    th_creator: 'Creator', th_at_all: '@All',
+    at_yes: 'Yes', no_announcements: 'No announcements',
+    'title-system': 'System Information',
+    server_status: 'Server Status', uptime: 'Uptime', platform: 'Platform',
+    ws_conn: 'WebSocket', push_status: 'Push (GeTui)',
+    push_active: 'Active', push_unconfigured: 'Not configured', push_error: 'Error',
+    memory_usage: 'Memory Usage',
+    heap_used: 'Heap Used', heap_total: 'Heap Total',
+    uploaded_files: 'Uploaded Files', file_count: '{n} files',
+    no_files: 'No files',
+    edit_user: 'Edit User', nickname: 'Nickname', signature: 'Signature', phone: 'Phone',
+    avatar_url: 'Avatar URL', background_url: 'Background URL',
+    cancel: 'Cancel', save: 'Save', ban: 'Ban', unban: 'Unban',
+    auto_refresh: 'Auto Refresh', last_updated: 'Updated',
+    user_detail: 'User Details', close: 'Close',
+    created_at: 'Created', friends_label: 'Friends', chats_label: 'Chats',
+    saved: 'Saved', deleted: 'Deleted',
+    confirm_delete_user: 'Delete user "{name}"? All related data will be removed.',
+    confirm_delete_chat: 'Delete chat "{name}"? All messages will be removed.',
+    confirm_delete_moment: 'Delete this moment?',
+    confirm_delete_announcement: 'Delete this announcement?',
+    confirm_delete_file: 'Delete file "{name}"?',
+    page_info: 'Page {p} / {total} ({n} total)', prev: 'Prev', next: 'Next',
+    system: 'System', unknown: 'Unknown', image: 'Image',
+    dark_mode: 'Dark Mode', light_mode: 'Light Mode',
+  }
+};
+
+let lang = 'zh';
+const t = (key, params) => {
+  let s = I18N[lang]?.[key] || I18N.zh[key] || key;
+  if (params) Object.entries(params).forEach(([k, v]) => { s = s.replace(`{${k}}`, v); });
+  return s;
+};
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    if ((l === 'zh' && b.textContent === '中文') || (l === 'en' && b.textContent === 'EN')) b.classList.add('active');
+  });
+  applyStaticI18n();
+  // Re-render current active page
+  const active = document.querySelector('.page.active');
+  if (active) {
+    const id = active.id.replace('page-', '');
+    const loaders = { dashboard: loadDashboard, users: loadUsers, chats: loadChats, moments: loadMoments, joinreq: loadJoinRequests, announcements: loadAnnouncements, system: loadSystem };
+    if (loaders[id]) loaders[id]();
+  }
+}
+
+function applyStaticI18n() {
+  // Login
+  document.getElementById('loginSubtitle').textContent = t('subtitle');
+  document.getElementById('loginUser').placeholder = t('username');
+  document.getElementById('loginPass').placeholder = t('password');
+  document.getElementById('loginBtn').textContent = t('login');
+  // Sidebar
+  document.getElementById('brandSub').textContent = t('brand_sub');
+  ['dashboard','users','chats','moments','joinreq','announcements','system'].forEach(k => {
+    const el = document.getElementById('nav-' + k);
+    if (el) el.textContent = t('nav-' + k);
+  });
+  document.getElementById('logoutBtn').textContent = t('logout');
+  // Page titles
+  ['dashboard','users','chats','moments','joinreq','announcements','system'].forEach(k => {
+    const el = document.getElementById('title-' + k);
+    if (el) el.textContent = t('title-' + k);
+  });
+  // Charts
+  document.getElementById('chart-msg').textContent = t('chart_msg');
+  document.getElementById('chart-reg').textContent = t('chart_reg');
+  document.getElementById('chart-type').textContent = t('chart_type');
+  // Search
+  document.getElementById('userSearch').placeholder = t('user_search_ph');
+  document.getElementById('btn-search-user').textContent = t('search');
+  document.getElementById('chatSearch').placeholder = t('chat_search_ph');
+  document.getElementById('opt-all').textContent = t('all_types');
+  document.getElementById('opt-group').textContent = t('group');
+  document.getElementById('opt-single').textContent = t('single');
+  // Table headers
+  document.getElementById('userThead').innerHTML = [t('th_avatar'),t('th_uid'),t('th_nickname'),t('th_phone'),t('th_status'),t('th_friends'),t('th_chats'),t('th_push'),t('th_actions')].map(h => `<th>${h}</th>`).join('');
+  document.getElementById('joinReqThead').innerHTML = [t('th_user'),t('th_uid'),t('th_group'),t('th_message'),t('th_status'),t('th_time')].map(h => `<th>${h}</th>`).join('');
+  document.getElementById('announceThead').innerHTML = [t('th_group') || '群组',t('th_content'),t('th_creator'),t('th_at_all'),t('th_time'),t('th_actions')].map(h => `<th>${h}</th>`).join('');
+  // Chat empty message
+  document.getElementById('chatEmptyMsg').textContent = lang === 'zh' ? '选择左侧聊天查看消息' : 'Select a chat to view messages';
+  // Modals
+  document.getElementById('editModalTitle').textContent = t('edit_user');
+  document.getElementById('lbl-nickname').textContent = t('nickname');
+  document.getElementById('lbl-signature').textContent = t('signature');
+  document.getElementById('lbl-phone').textContent = t('phone');
+  document.getElementById('lbl-avatar').textContent = t('avatar_url');
+  document.getElementById('lbl-background').textContent = t('background_url');
+  document.getElementById('lbl-auto-refresh').textContent = t('auto_refresh');
+  document.getElementById('lbl-online').textContent = t('online');
+  document.getElementById('btn-cancel').textContent = t('cancel');
+  document.getElementById('btn-save').textContent = t('save');
+  document.getElementById('btn-close').textContent = t('close');
+  // Theme label
+  const themeLabel = document.getElementById('themeLabel');
+  if (themeLabel) themeLabel.textContent = currentTheme === 'light' ? t('light_mode') : t('dark_mode');
+}
+
+// ========== Cookies ==========
+function setCookie(name, value, days) {
+  const d = new Date(); d.setTime(d.getTime() + days * 86400000);
+  document.cookie = name + '=' + encodeURIComponent(value) + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+}
+function getCookie(name) {
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : '';
+}
+function delCookie(name) { document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/'; }
+
+// ========== Theme ==========
+let currentTheme = getCookie('admin_theme') || 'dark';
+function applyTheme(theme) {
+  currentTheme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  setCookie('admin_theme', theme, 365);
+  const isLight = theme === 'light';
+  const icon = isLight ? '&#9728;' : '&#9789;';
+  const label = isLight ? t('light_mode') : t('dark_mode');
+  const sidebarIcon = document.getElementById('themeIcon');
+  const sidebarLabel = document.getElementById('themeLabel');
+  const loginBtn = document.getElementById('loginThemeBtn');
+  if (sidebarIcon) sidebarIcon.innerHTML = icon;
+  if (sidebarLabel) sidebarLabel.textContent = label;
+  if (loginBtn) loginBtn.innerHTML = icon;
+}
+function toggleTheme() {
+  applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+}
+applyTheme(currentTheme);
+
+// ========== Auto Refresh ==========
+let refreshTimer = null;
+function toggleAutoRefresh() {
+  clearInterval(refreshTimer);
+  refreshTimer = null;
+  const on = document.getElementById('autoRefreshToggle').checked;
+  if (on && token) {
+    const sec = parseInt(document.getElementById('refreshInterval').value) || 10;
+    refreshTimer = setInterval(() => {
+      // Always update online count
+      fetchOnlineCount();
+      // Refresh current page data
+      const active = document.querySelector('.page.active');
+      if (!active) return;
+      const id = active.id.replace('page-', '');
+      const loaders = { dashboard: loadDashboard, users: loadUsers, chats: loadChats, moments: loadMoments, joinreq: loadJoinRequests, announcements: loadAnnouncements, system: loadSystem };
+      if (loaders[id]) loaders[id]();
+    }, sec * 1000);
+  }
+}
+function fetchOnlineCount() {
+  if (!token) return;
+  fetch(API + '/stats', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => r.ok ? r.json() : null)
+    .then(d => { if (d) { document.getElementById('onlineCount').textContent = d.onlineUsers; } })
+    .catch(() => {});
+}
+function updateRefreshTime() {
+  const el = document.getElementById('lastUpdateTime');
+  if (el) el.textContent = (lang === 'zh' ? '最后更新: ' : 'Updated: ') + new Date().toLocaleTimeString();
+}
+
+// ========== App Logic ==========
+const API = '/api/admin';
+let token = '';
+let currentPages = { users: 1, chats: 1, moments: 1 };
+let debounceTimers = {};
+
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  fetch(API + '/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: u, password: p })
+  }).then(r => r.json()).then(d => {
+    if (d.token) {
+      token = d.token;
+      setCookie('admin_token', token, 1);
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      applyStaticI18n();
+      loadDashboard();
+      toggleAutoRefresh();
+    } else {
+      err.textContent = d.error || t('login_failed');
+      err.style.display = 'block';
+    }
+  }).catch(() => {
+    err.textContent = t('network_err');
+    err.style.display = 'block';
+  });
+}
+
+function doLogout() {
+  token = '';
+  delCookie('admin_token');
+  clearInterval(refreshTimer);
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+
+// Auto-login from cookie
+(function() {
+  const saved = getCookie('admin_token');
+  if (saved) {
+    token = saved;
+    // Verify token is still valid
+    fetch(API + '/stats', { headers: { 'Authorization': 'Bearer ' + token } })
+      .then(r => {
+        if (r.ok) {
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('app').style.display = 'block';
+          applyStaticI18n();
+          loadDashboard();
+          toggleAutoRefresh();
+        } else {
+          delCookie('admin_token');
+          token = '';
+        }
+      })
+      .catch(() => { delCookie('admin_token'); token = ''; });
+  }
+})();
+
+function headers() { return { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }; }
+
+function apiFetch(url, opts = {}) {
+  opts.headers = headers();
+  return fetch(API + url, opts).then(async r => {
+    if (r.status === 401) { doLogout(); throw new Error('Auth expired'); }
+    return r.json();
+  });
+}
+
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector(`.nav-item[data-page="${page}"]`).classList.add('active');
+  const loaders = { dashboard: loadDashboard, users: loadUsers, chats: loadChats, moments: loadMoments, joinreq: loadJoinRequests, announcements: loadAnnouncements, system: loadSystem };
+  if (loaders[page]) loaders[page]();
+}
+
+function debounce(fn, ms) { clearTimeout(debounceTimers[fn.name]); debounceTimers[fn.name] = setTimeout(fn, ms); }
+function toast(msg, type = 'success') { const el = document.createElement('div'); el.className = 'toast ' + type; el.textContent = msg; document.body.appendChild(el); setTimeout(() => el.remove(), 3000); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function formatTime(ts) { if (!ts) return '-'; return new Date(ts).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }); }
+function formatSize(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b / 1024).toFixed(1) + ' KB'; return (b / 1048576).toFixed(1) + ' MB'; }
+function formatUptime(s) { const d = Math.floor(s/86400), h = Math.floor((s%86400)/3600), m = Math.floor((s%3600)/60); return (d > 0 ? d + (lang==='zh'?'天':'d ') : '') + h + (lang==='zh'?'小时':'h ') + m + (lang==='zh'?'分钟':'m'); }
+function avatarHtml(url, size = 32) { if (url) return `<img src="${url}" class="avatar" style="width:${size}px;height:${size}px" onerror="this.style.display='none'">`; return `<div class="avatar" style="width:${size}px;height:${size}px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px">?</div>`; }
+
+// ========== Dashboard ==========
+function loadDashboard() {
+  apiFetch('/stats').then(d => {
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card purple"><div class="label">${t('total_users')}</div><div class="value">${d.totalUsers}</div><div class="sub">${t('registered')}</div></div>
+      <div class="stat-card green"><div class="label">${t('online_now')}</div><div class="value">${d.onlineUsers}</div><div class="sub">${t('ws_connections')}</div></div>
+      <div class="stat-card blue"><div class="label">${t('total_messages')}</div><div class="value">${d.totalMessages}</div><div class="sub">+${d.todayMessages} ${t('today_new')}</div></div>
+      <div class="stat-card orange"><div class="label">${t('groups')}</div><div class="value">${d.totalGroups}</div><div class="sub">${t('chats_total',{n:d.totalChats})}</div></div>
+      <div class="stat-card purple"><div class="label">${t('moments')}</div><div class="value">${d.totalMoments}</div><div class="sub">+${d.todayMoments} ${t('today_new')}</div></div>
+      <div class="stat-card green"><div class="label">${t('friendships')}</div><div class="value">${d.totalFriendships}</div></div>
+      <div class="stat-card blue"><div class="label">${t('pending_req')}</div><div class="value">${d.pendingJoinRequests}</div></div>
+      <div class="stat-card orange"><div class="label">${t('offline_queue')}</div><div class="value">${d.offlineQueueSize}</div><div class="sub">${t('pending_msgs')}</div></div>
+    `;
+    const maxMsg = Math.max(...d.dailyMessages.map(x => x.count), 1);
+    document.getElementById('msgChart').innerHTML = d.dailyMessages.map(x => `<div class="bar-wrap"><div class="bar-value">${x.count}</div><div class="bar" style="height:${Math.max((x.count/maxMsg)*120,2)}px"></div><div class="bar-label">${x.date.slice(5)}</div></div>`).join('');
+    const maxReg = Math.max(...d.dailyRegistrations.map(x => x.count), 1);
+    document.getElementById('regChart').innerHTML = d.dailyRegistrations.map(x => `<div class="bar-wrap"><div class="bar-value">${x.count}</div><div class="bar" style="height:${Math.max((x.count/maxReg)*120,2)}px;background:var(--success)"></div><div class="bar-label">${x.date.slice(5)}</div></div>`).join('');
+    const colors = ['#6c5ce7','#10b981','#3b82f6','#f59e0b','#ef4444','#ec4899','#8b5cf6','#06b6d4'];
+    let i = 0;
+    document.getElementById('msgTypeChart').innerHTML = Object.entries(d.msgTypes).map(([type, count]) => { const c = colors[i++ % colors.length]; return `<div style="background:${c}22;border:1px solid ${c}44;border-radius:8px;padding:8px 16px;text-align:center"><div style="font-size:20px;font-weight:700;color:${c}">${count}</div><div style="font-size:12px;color:var(--text2)">${type}</div></div>`; }).join('');
+    updateRefreshTime();
+  });
+}
+
+// ========== Users ==========
+function loadUsers() {
+  const search = document.getElementById('userSearch').value;
+  const page = currentPages.users;
+  apiFetch(`/users?search=${encodeURIComponent(search)}&page=${page}&pageSize=15`).then(d => {
+    document.getElementById('userTable').innerHTML = d.users.map(u => `<tr>
+      <td>${avatarHtml(u.avatar_url)}</td>
+      <td>${u.uid || '-'}</td>
+      <td><strong>${u.nickname || '-'}</strong></td>
+      <td>${u.phone || '-'}</td>
+      <td>${u.banned ? `<span class="badge banned">${t('banned')}</span>` : (u.isOnline ? `<span class="badge online">${t('online')}</span>` : `<span class="badge offline">${t('offline')}</span>`)}</td>
+      <td>${u.friendCount}</td><td>${u.chatCount}</td>
+      <td>${u.hasPushToken ? `<span class="badge online">${t('push_yes')}</span>` : `<span class="badge offline">${t('push_no')}</span>`}</td>
+      <td><div class="btn-group">
+        <button class="btn" onclick="viewUser('${u.id}')">${t('detail')}</button>
+        <button class="btn" onclick="editUser('${u.id}')">${t('edit')}</button>
+        <button class="btn danger" onclick="deleteUser('${u.id}','${(u.nickname||'').replace(/'/g,"\\'")}')">${t('delete')}</button>
+      </div></td>
+    </tr>`).join('');
+    renderPagination('userPagination', d.total, page, 15, p => { currentPages.users = p; loadUsers(); });
+  });
+}
+
+function viewUser(id) {
+  apiFetch('/users/' + id).then(d => {
+    const u = d.user;
+    document.getElementById('detailTitle').textContent = (u.nickname || t('unknown')) + ' - ' + t('user_detail');
+    document.getElementById('detailContent').innerHTML = `
+      <div style="text-align:center;margin-bottom:16px">${avatarHtml(u.avatar_url, 64)}<h3 style="margin-top:8px">${u.nickname || '-'}</h3><p style="color:var(--text2)">${u.uid || '-'} | ${u.phone || '-'}</p></div>
+      <div class="sys-row"><span class="k">${t('signature')}</span><span class="v">${u.signature || '-'}</span></div>
+      <div class="sys-row"><span class="k">${t('created_at')}</span><span class="v">${formatTime(u.created_at)}</span></div>
+      <div class="sys-row"><span class="k">${t('friends_label')} (${d.friends.length})</span><span class="v">${d.friends.map(f => f.nickname).join(', ') || '-'}</span></div>
+      <div class="sys-row"><span class="k">${t('chats_label')} (${d.chats.length})</span><span class="v">${d.chats.map(c => c.name).join(', ') || '-'}</span></div>
+    `;
+    openModal('detailModal');
+  });
+}
+
+function editUser(id) {
+  apiFetch('/users/' + id).then(d => {
+    const u = d.user;
+    document.getElementById('editUserId').value = id;
+    document.getElementById('editNickname').value = u.nickname || '';
+    document.getElementById('editSignature').value = u.signature || '';
+    document.getElementById('editPhone').value = u.phone || '';
+    document.getElementById('editAvatar').value = u.avatar_url || '';
+    document.getElementById('editBackground').value = u.background_url || u.background_original_url || '';
+    document.getElementById('editBanBtn').textContent = u.banned ? t('unban') : t('ban');
+    // Avatar preview
+    document.getElementById('editAvatarPreview').innerHTML = u.avatar_url ? `<img src="${u.avatar_url}" style="width:48px;height:48px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">` : '';
+    // Background preview
+    const bgUrl = u.background_url || u.background_original_url;
+    document.getElementById('editBgPreview').innerHTML = bgUrl ? `<img src="${bgUrl}" style="width:100%;max-height:80px;border-radius:6px;object-fit:cover" onerror="this.style.display='none'">` : '';
+    openModal('editModal');
+  });
+}
+
+// Live preview for avatar/background inputs
+document.addEventListener('input', e => {
+  if (e.target.id === 'editAvatar') {
+    const v = e.target.value;
+    document.getElementById('editAvatarPreview').innerHTML = v ? `<img src="${v}" style="width:48px;height:48px;border-radius:50%;object-fit:cover" onerror="this.style.display='none'">` : '';
+  }
+  if (e.target.id === 'editBackground') {
+    const v = e.target.value;
+    document.getElementById('editBgPreview').innerHTML = v ? `<img src="${v}" style="width:100%;max-height:80px;border-radius:6px;object-fit:cover" onerror="this.style.display='none'">` : '';
+  }
+});
+
+function saveUser() {
+  const id = document.getElementById('editUserId').value;
+  apiFetch('/users/' + id, {
+    method: 'PUT',
+    body: JSON.stringify({
+      nickname: document.getElementById('editNickname').value,
+      signature: document.getElementById('editSignature').value,
+      phone: document.getElementById('editPhone').value,
+      avatar_url: document.getElementById('editAvatar').value,
+      background_url: document.getElementById('editBackground').value,
+      background_original_url: document.getElementById('editBackground').value,
+    })
+  }).then(d => {
+    if (d.success) { toast(t('saved')); closeModal('editModal'); loadUsers(); }
+    else toast(d.error || 'Failed', 'error');
+  });
+}
+
+function toggleBan() {
+  const id = document.getElementById('editUserId').value;
+  apiFetch('/users/' + id).then(d => {
+    return apiFetch('/users/' + id, { method: 'PUT', body: JSON.stringify({ banned: !d.user.banned }) });
+  }).then(d => {
+    if (d.success) { toast(d.user.banned ? t('banned') : t('unban')); closeModal('editModal'); loadUsers(); }
+  });
+}
+
+function deleteUser(id, name) {
+  if (!confirm(t('confirm_delete_user', { name }))) return;
+  apiFetch('/users/' + id, { method: 'DELETE' }).then(d => {
+    if (d.success) { toast(t('deleted')); loadUsers(); } else toast(d.error || 'Failed', 'error');
+  });
+}
+
+// ========== Chats (Split Layout) ==========
+let chatData = [];
+let selectedChatId = null;
+let chatMsgPage = 1;
+
+function loadChats() { loadChatList(); }
+
+function loadChatList() {
+  const search = document.getElementById('chatSearch').value;
+  const type = document.getElementById('chatType').value;
+  apiFetch(`/chats?search=${encodeURIComponent(search)}&type=${type}&page=1&pageSize=100`).then(d => {
+    chatData = d.chats;
+    const list = document.getElementById('chatList');
+    list.innerHTML = d.chats.map(c => {
+      const icon = c.type === 'GROUP' ? '&#128101;' : '&#128100;';
+      const typeLabel = c.type === 'GROUP' ? t('group') : t('single');
+      return `<div class="chat-card ${selectedChatId === c.id ? 'active' : ''}" onclick="selectChat('${c.id}')">
+        <div class="chat-card-icon">${icon}</div>
+        <div class="chat-card-info">
+          <div class="chat-card-name">${c.name || '-'}</div>
+          <div class="chat-card-sub">${typeLabel} &middot; ${c.memberCount} ${t('th_members')} &middot; ${c.messageCount} ${t('th_messages')}</div>
+        </div>
+      </div>`;
+    }).join('') || `<div class="chat-empty">${lang === 'zh' ? '暂无聊天' : 'No chats'}</div>`;
+    // Re-select current chat to refresh messages
+    if (selectedChatId) loadChatMessages(selectedChatId);
+  });
+}
+
+function selectChat(chatId) {
+  selectedChatId = chatId;
+  chatMsgPage = 1;
+  // Update card highlights
+  document.querySelectorAll('.chat-card').forEach(c => c.classList.remove('active'));
+  const cards = document.querySelectorAll('.chat-card');
+  const chat = chatData.find(c => c.id === chatId);
+  cards.forEach(card => { if (card.onclick && card.getAttribute('onclick')?.includes(chatId)) card.classList.add('active'); });
+  // Show header
+  if (chat) {
+    document.getElementById('chatRightHeader').style.display = 'flex';
+    document.getElementById('chatRightName').textContent = chat.name || chatId;
+    const typeLabel = chat.type === 'GROUP' ? t('group') : t('single');
+    document.getElementById('chatRightMeta').textContent = `${typeLabel} &middot; ${chat.memberCount} ${t('th_members')} &middot; ${t('th_owner')}: ${chat.ownerName}`;
+    document.getElementById('chatDeleteBtn').textContent = t('delete');
+  }
+  loadChatMessages(chatId);
+}
+
+function loadChatMessages(chatId) {
+  apiFetch(`/chats/${chatId}/messages?page=${chatMsgPage}&pageSize=50`).then(d => {
+    const area = document.getElementById('chatMsgArea');
+    if (d.messages.length === 0) {
+      area.innerHTML = `<div class="chat-empty">${t('no_messages')}</div>`;
+      return;
+    }
+    area.innerHTML = d.messages.map(m => `
+      <div class="msg-item">
+        <div class="msg-meta"><strong>${m.senderName}</strong> &middot; ${formatTime(m.timestamp)} &middot; ${m.type || 'TEXT'}</div>
+        <div class="msg-content">${m.type === 'IMAGE' ? `<img src="${m.url || m.content}" onerror="this.alt='${t('image')}'>` : (m.type === 'FILE' ? `[${t('th_content')}] ${m.fileName || m.content || '-'}` : (m.content || m.text || '-'))}</div>
+      </div>
+    `).join('');
+    // Auto scroll to bottom
+    area.scrollTop = area.scrollHeight;
+    updateRefreshTime();
+  });
+}
+
+function deleteSelectedChat() {
+  if (!selectedChatId) return;
+  const chat = chatData.find(c => c.id === selectedChatId);
+  if (!confirm(t('confirm_delete_chat', { name: chat ? chat.name : selectedChatId }))) return;
+  apiFetch('/chats/' + selectedChatId, { method: 'DELETE' }).then(d => {
+    if (d.success) {
+      toast(t('deleted'));
+      selectedChatId = null;
+      document.getElementById('chatRightHeader').style.display = 'none';
+      document.getElementById('chatMsgArea').innerHTML = `<div class="chat-empty">${t('no_messages')}</div>`;
+      loadChatList();
+    }
+  });
+}
+
+// ========== Moments (Card Layout) ==========
+function loadMoments() {
+  const page = currentPages.moments;
+  apiFetch(`/moments?page=${page}&pageSize=10`).then(d => {
+    const container = document.getElementById('momentsList');
+    container.innerHTML = d.moments.map(m => {
+      // Images
+      let imagesHtml = '';
+      if (m.images && m.images.length > 0) {
+        imagesHtml = `<div class="moment-images">${m.images.map(img => `<img src="${img}" onclick="window.open('${img}','_blank')" onerror="this.style.display='none'">`).join('')}</div>`;
+      } else if (m.image_url) {
+        imagesHtml = `<div class="moment-images"><img src="${m.image_url}" onclick="window.open('${m.image_url}','_blank')" onerror="this.style.display='none'"></div>`;
+      }
+      // Likes
+      let likesHtml = '';
+      if (m.likes && m.likes.length > 0) {
+        likesHtml = `<div class="moment-likes">${m.likes.map(l => `<span>${l.nickname}</span>`).join('、')}</div>`;
+      }
+      // Comments
+      let commentsHtml = '';
+      if (m.comments && m.comments.length > 0) {
+        commentsHtml = `<div class="moment-comments">${m.comments.map(c => `
+          <div class="moment-comment">
+            <strong>${c.authorName}</strong>: ${c.content || c.text || '-'}
+            <span class="mc-time">${formatTime(c.created_at)}</span>
+          </div>
+        `).join('')}</div>`;
+      }
+      const scopeLabel = m.scope === 'friends' ? t('scope_friends') : t('scope_public');
+      return `<div class="moment-card">
+        <div class="moment-header">
+          ${avatarHtml(m.authorAvatar, 40)}
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:14px">${m.authorName}</div>
+            <div style="font-size:11px;color:var(--text2)">${formatTime(m.created_at)} &middot; ${scopeLabel}</div>
+          </div>
+          <button class="btn danger" onclick="deleteMoment('${m.id}')">${t('delete')}</button>
+        </div>
+        <div class="moment-body">${m.content || ''}</div>
+        ${imagesHtml}
+        ${likesHtml}
+        ${commentsHtml}
+      </div>`;
+    }).join('') || `<div class="chat-empty">${lang === 'zh' ? '暂无朋友圈' : 'No moments'}</div>`;
+    renderPagination('momentPagination', d.total, page, 10, p => { currentPages.moments = p; loadMoments(); });
+  });
+}
+
+function deleteMoment(id) {
+  if (!confirm(t('confirm_delete_moment'))) return;
+  apiFetch('/moments/' + id, { method: 'DELETE' }).then(d => { if (d.success) { toast(t('deleted')); loadMoments(); } });
+}
+
+// ========== Join Requests ==========
+function loadJoinRequests() {
+  apiFetch('/join-requests').then(d => {
+    const statusMap = { PENDING: t('status_pending'), ACCEPTED: t('status_accepted'), REJECTED: t('status_rejected') };
+    document.getElementById('joinReqTable').innerHTML = d.joinRequests.map(r => `<tr>
+      <td><strong>${r.userName}</strong></td><td>${r.userUid}</td><td>${r.chatName}</td>
+      <td>${r.message || '-'}</td>
+      <td><span class="badge ${r.status.toLowerCase()}">${statusMap[r.status] || r.status}</span></td>
+      <td>${formatTime(r.created_at)}</td>
+    </tr>`).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:24px">${t('no_join_req')}</td></tr>`;
+  });
+}
+
+// ========== Announcements ==========
+function loadAnnouncements() {
+  apiFetch('/announcements').then(d => {
+    document.getElementById('announceTable').innerHTML = d.announcements.map(a => `<tr>
+      <td>${a.chatName}</td>
+      <td>${(a.content || '').slice(0, 80)}</td>
+      <td>${a.creatorName}</td>
+      <td>${a.at_all ? `<span class="badge group">${t('at_yes')}</span>` : '-'}</td>
+      <td>${formatTime(a.created_at)}</td>
+      <td><button class="btn danger" onclick="deleteAnnouncement('${a.id}')">${t('delete')}</button></td>
+    </tr>`).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--text2);padding:24px">${t('no_announcements')}</td></tr>`;
+  });
+}
+
+function deleteAnnouncement(id) {
+  if (!confirm(t('confirm_delete_announcement'))) return;
+  apiFetch('/announcements/' + id, { method: 'DELETE' }).then(d => { if (d.success) { toast(t('deleted')); loadAnnouncements(); } });
+}
+
+// ========== System ==========
+function loadSystem() {
+  apiFetch('/system').then(d => {
+    const pushMap = { active: `<span class="badge online">${t('push_active')}</span>`, unconfigured: `<span class="badge offline">${t('push_unconfigured')}</span>`, error: `<span class="badge banned">${t('push_error')}</span>` };
+    document.getElementById('sysGrid').innerHTML = `
+      <div class="sys-card">
+        <h3>${t('server_status')}</h3>
+        <div class="sys-row"><span class="k">${t('uptime')}</span><span class="v">${formatUptime(d.uptime)}</span></div>
+        <div class="sys-row"><span class="k">Node.js</span><span class="v">${d.nodeVersion}</span></div>
+        <div class="sys-row"><span class="k">${t('platform')}</span><span class="v">${d.platform}</span></div>
+        <div class="sys-row"><span class="k">${t('ws_conn')}</span><span class="v">${d.wsConnections} ${lang==='zh'?'个连接':'connections'}</span></div>
+        <div class="sys-row"><span class="k">${t('push_status')}</span><span class="v">${pushMap[d.pushStatus] || d.pushStatus}</span></div>
+      </div>
+      <div class="sys-card">
+        <h3>${t('memory_usage')}</h3>
+        <div class="sys-row"><span class="k">RSS</span><span class="v">${formatSize(d.memory.rss)}</span></div>
+        <div class="sys-row"><span class="k">${t('heap_used')}</span><span class="v">${formatSize(d.memory.heapUsed)}</span></div>
+        <div class="sys-row"><span class="k">${t('heap_total')}</span><span class="v">${formatSize(d.memory.heapTotal)}</span></div>
+      </div>
+      <div class="sys-card">
+        <h3>${t('uploaded_files')}（${t('file_count',{n:d.uploadFileCount})}，${formatSize(d.uploadSizeTotal)}）</h3>
+        <div class="file-list">
+          ${d.uploadFiles.map(f => `<div class="file-item"><span class="file-name" title="${f.name}">${f.name}</span><span class="file-size">${formatSize(f.size)}</span><button class="btn danger" onclick="deleteFile('${f.name}')">${t('delete')}</button></div>`).join('') || `<p style="color:var(--text2);text-align:center;padding:16px">${t('no_files')}</p>`}
+        </div>
+      </div>
+    `;
+  });
+}
+
+function deleteFile(name) {
+  if (!confirm(t('confirm_delete_file', { name }))) return;
+  apiFetch('/system/files/' + encodeURIComponent(name), { method: 'DELETE' }).then(d => { if (d.success) { toast(t('deleted')); loadSystem(); } });
+}
+
+// ========== Pagination ==========
+function renderPagination(containerId, total, currentPage, pageSize, onPage) {
+  const totalPages = Math.ceil(total / pageSize);
+  const el = document.getElementById(containerId);
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <button ${currentPage <= 1 ? 'disabled' : ''} onclick="void(0)">&laquo; ${t('prev')}</button>
+    <span>${t('page_info', { p: currentPage, total: totalPages, n: total })}</span>
+    <button ${currentPage >= totalPages ? 'disabled' : ''} onclick="void(0)">${t('next')} &raquo;</button>
+  `;
+  const btns = el.querySelectorAll('button');
+  btns[0].onclick = () => { if (currentPage > 1) onPage(currentPage - 1); };
+  btns[1].onclick = () => { if (currentPage < totalPages) onPage(currentPage + 1); };
+}
+
+// Enter to login
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>

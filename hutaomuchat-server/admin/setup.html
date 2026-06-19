@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HutaomuChat - 初始化设置</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f1117;--card:#1a1d29;--card2:#232736;--border:#2d3348;--primary:#6c5ce7;--primary-light:#a29bfe;--text:#e2e8f0;--text2:#94a3b8;--success:#10b981;--danger:#ef4444;--warning:#f59e0b}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center}
+.setup-wrap{width:600px;max-width:95vw;padding:20px}
+.setup-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px;position:relative;overflow:hidden}
+.setup-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--primary-light),var(--success))}
+.logo{text-align:center;margin-bottom:32px}
+.logo h1{font-size:28px;color:var(--primary-light);margin-bottom:4px}
+.logo p{color:var(--text2);font-size:14px}
+.steps{display:flex;gap:0;margin-bottom:32px;position:relative}
+.steps::before{content:'';position:absolute;top:16px;left:40px;right:40px;height:2px;background:var(--border)}
+.step{flex:1;text-align:center;position:relative;z-index:1}
+.step-dot{width:32px;height:32px;border-radius:50%;background:var(--card2);border:2px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--text2);transition:all .3s}
+.step.active .step-dot{background:var(--primary);border-color:var(--primary);color:#fff}
+.step.done .step-dot{background:var(--success);border-color:var(--success);color:#fff}
+.step-label{font-size:12px;color:var(--text2);margin-top:6px;transition:color .3s}
+.step.active .step-label,.step.done .step-label{color:var(--text)}
+.panel{display:none;animation:fadeIn .3s}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.field{margin-bottom:20px}
+.field label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px;font-weight:600}
+.field input,.field select{width:100%;padding:12px 16px;background:var(--card2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;transition:border .2s}
+.field input:focus,.field select:focus{border-color:var(--primary)}
+.field .hint{font-size:12px;color:var(--text2);margin-top:4px}
+.field .error{font-size:12px;color:var(--danger);margin-top:4px;display:none}
+.field-group{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.btn-row{display:flex;gap:12px;justify-content:flex-end;margin-top:32px}
+.btn{padding:12px 28px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+.btn-secondary{background:var(--card2);color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--primary);color:var(--text)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.success-panel{text-align:center;padding:20px 0}
+.success-icon{width:80px;height:80px;border-radius:50%;background:rgba(16,185,129,.15);display:inline-flex;align-items:center;justify-content:center;margin-bottom:24px}
+.success-icon svg{width:40px;height:40px;color:var(--success)}
+.success-panel h2{font-size:24px;margin-bottom:8px}
+.success-panel p{color:var(--text2);margin-bottom:24px;line-height:1.6}
+.info-box{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px;font-size:13px;line-height:1.8;color:var(--text2)}
+.info-box strong{color:var(--text)}
+.info-box code{background:var(--bg);padding:2px 8px;border-radius:4px;font-size:12px;color:var(--primary-light)}
+.welcome-features{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0}
+.wf-item{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.wf-item svg{width:24px;height:24px;color:var(--primary-light);margin-bottom:8px}
+.wf-item h4{font-size:13px;margin-bottom:4px}
+.wf-item p{font-size:11px;color:var(--text2)}
+.toast{position:fixed;top:24px;right:24px;padding:12px 24px;border-radius:8px;font-size:14px;z-index:200;animation:fadeIn .3s;color:#fff}
+.toast.error{background:var(--danger)}
+.toast.success{background:var(--success)}
+</style>
+</head>
+<body>
+
+<div class="setup-wrap">
+  <div class="setup-card">
+    <div class="logo">
+      <h1>HutaomuChat</h1>
+      <p id="setupSubtitle">首次部署 · 初始化设置向导</p>
+    </div>
+
+    <div class="steps" id="stepsBar">
+      <div class="step active" data-step="0"><div class="step-dot">1</div><div class="step-label" id="sl-0">欢迎</div></div>
+      <div class="step" data-step="1"><div class="step-dot">2</div><div class="step-label" id="sl-1">管理员</div></div>
+      <div class="step" data-step="2"><div class="step-dot">3</div><div class="step-label" id="sl-2">服务配置</div></div>
+      <div class="step" data-step="3"><div class="step-dot">4</div><div class="step-label" id="sl-3">推送配置</div></div>
+      <div class="step" data-step="4"><div class="step-dot">5</div><div class="step-label" id="sl-4">完成</div></div>
+    </div>
+
+    <!-- Step 0: Welcome -->
+    <div class="panel active" id="panel-0">
+      <div class="info-box" id="welcomeInfo">
+        <strong>欢迎使用 HutaomuChat！</strong><br>
+        这是首次部署设置向导，只需几步即可完成服务器初始化配置。<br>
+        设置完成后即可正常使用管理后台和客户端。
+      </div>
+      <div class="welcome-features">
+        <div class="wf-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          <h4 id="wf1-title">用户管理</h4>
+          <p id="wf1-desc">管理用户、封禁、编辑资料</p>
+        </div>
+        <div class="wf-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <h4 id="wf2-title">聊天监控</h4>
+          <p id="wf2-desc">实时查看聊天记录和群组</p>
+        </div>
+        <div class="wf-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <h4 id="wf3-title">数据统计</h4>
+          <p id="wf3-desc">用户、消息、在线实时数据</p>
+        </div>
+        <div class="wf-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
+          <h4 id="wf4-title">推送通知</h4>
+          <p id="wf4-desc">个推 UniPush 系统级推送</p>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="setLang(setupLang==='zh'?'en':'zh')" id="btn-lang">English</button>
+        <button class="btn btn-primary" onclick="goStep(1)" id="btn-start">开始设置</button>
+      </div>
+    </div>
+
+    <!-- Step 1: Admin Account -->
+    <div class="panel" id="panel-1">
+      <div class="field-group">
+        <div class="field">
+          <label id="lbl-admin-user">管理员用户名</label>
+          <input type="text" id="adminUser" value="admin" autocomplete="username">
+          <div class="hint" id="hint-admin-user">登录管理后台的用户名</div>
+        </div>
+        <div class="field">
+          <label id="lbl-admin-pass">管理员密码</label>
+          <input type="password" id="adminPass" autocomplete="new-password">
+          <div class="hint" id="hint-admin-pass">至少 6 个字符</div>
+          <div class="error" id="err-admin-pass">密码至少 6 个字符</div>
+        </div>
+      </div>
+      <div class="field">
+        <label id="lbl-admin-pass2">确认密码</label>
+        <input type="password" id="adminPass2" autocomplete="new-password">
+        <div class="error" id="err-admin-pass2">两次输入的密码不一致</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goStep(0)" id="btn-back-1">上一步</button>
+        <button class="btn btn-primary" onclick="validateStep1()" id="btn-next-1">下一步</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Server Config -->
+    <div class="panel" id="panel-2">
+      <div class="field">
+        <label id="lbl-server-name">服务器名称</label>
+        <input type="text" id="serverName" value="HutaomuChat" placeholder="HutaomuChat">
+        <div class="hint" id="hint-server-name">显示在客户端的服务器名称</div>
+      </div>
+      <div class="field-group">
+        <div class="field">
+          <label id="lbl-port">端口号</label>
+          <input type="number" id="serverPort" value="3000" min="1" max="65535">
+          <div class="hint" id="hint-port">服务端监听的端口</div>
+        </div>
+        <div class="field">
+          <label id="lbl-jwt">JWT 密钥</label>
+          <input type="text" id="jwtSecret" placeholder="自动生成">
+          <div class="hint" id="hint-jwt">留空将自动生成随机密钥</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goStep(1)" id="btn-back-2">上一步</button>
+        <button class="btn btn-primary" onclick="goStep(3)" id="btn-next-2">下一步</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Push Config (optional) -->
+    <div class="panel" id="panel-3">
+      <div class="info-box" id="pushInfo">
+        <strong>个推 UniPush 配置（可选）</strong><br>
+        配置后可实现系统级推送通知（应用被杀也能收到通知）。<br>
+        从 <code>dev.getui.com</code> 获取 AppID、AppKey、MasterSecret。
+      </div>
+      <div class="field">
+        <label>AppID</label>
+        <input type="text" id="getuiAppId" placeholder="留空跳过">
+      </div>
+      <div class="field-group">
+        <div class="field">
+          <label>AppKey</label>
+          <input type="text" id="getuiAppKey" placeholder="留空跳过">
+        </div>
+        <div class="field">
+          <label>MasterSecret</label>
+          <input type="text" id="getuiMasterSecret" placeholder="留空跳过">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goStep(2)" id="btn-back-3">上一步</button>
+        <button class="btn btn-primary" onclick="validateStep3()" id="btn-next-3">下一步</button>
+      </div>
+    </div>
+
+    <!-- Step 4: Done -->
+    <div class="panel" id="panel-4">
+      <div class="success-panel">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2 id="done-title">设置完成！</h2>
+        <p id="done-desc">服务器初始化成功，点击下方按钮进入管理后台。</p>
+        <div class="info-box" id="doneInfo" style="text-align:left"></div>
+        <button class="btn btn-primary" onclick="goAdmin()" id="btn-go-admin" style="margin-top:16px;padding:14px 48px;font-size:16px">进入管理后台</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let setupLang = 'zh';
+let currentStep = 0;
+
+const L = {
+  zh: {
+    subtitle: '首次部署 · 初始化设置向导',
+    sl: ['欢迎','管理员','服务配置','推送配置','完成'],
+    welcome_info: '<strong>欢迎使用 HutaomuChat！</strong><br>这是首次部署设置向导，只需几步即可完成服务器初始化配置。<br>设置完成后即可正常使用管理后台和客户端。',
+    wf: [['用户管理','管理用户、封禁、编辑资料'],['聊天监控','实时查看聊天记录和群组'],['数据统计','用户、消息、在线实时数据'],['推送通知','个推 UniPush 系统级推送']],
+    start: '开始设置', lang_btn: 'English',
+    admin_user: '管理员用户名', admin_pass: '管理员密码', admin_pass2: '确认密码',
+    hint_admin_user: '登录管理后台的用户名', hint_admin_pass: '至少 6 个字符',
+    err_pass_short: '密码至少 6 个字符', err_pass_mismatch: '两次输入的密码不一致',
+    server_name: '服务器名称', port: '端口号', jwt: 'JWT 密钥',
+    hint_server_name: '显示在客户端的服务器名称', hint_port: '服务端监听的端口', hint_jwt: '留空将自动生成随机密钥',
+    push_info: '<strong>个推 UniPush 配置（可选）</strong><br>配置后可实现系统级推送通知（应用被杀也能收到通知）。<br>从 <code>dev.getui.com</code> 获取 AppID、AppKey、MasterSecret。',
+    done_title: '设置完成！', done_desc: '服务器初始化成功，点击下方按钮进入管理后台。',
+    go_admin: '进入管理后台',
+    back: '上一步', next: '下一步',
+    saving: '保存中...', save_failed: '保存失败: ',
+    done_summary: '管理员账号: <strong>{user}</strong><br>服务端口: <strong>{port}</strong><br>推送状态: <strong>{push}</strong>',
+    push_enabled: '已配置', push_disabled: '未配置',
+    network_err: '网络错误，请重试',
+  },
+  en: {
+    subtitle: 'First Deploy · Setup Wizard',
+    sl: ['Welcome','Admin','Server','Push','Done'],
+    welcome_info: '<strong>Welcome to HutaomuChat!</strong><br>This is the first-time setup wizard. Complete a few steps to initialize your server.<br>After setup, you can use the admin panel and client app.',
+    wf: [['User Mgmt','Manage, ban, edit users'],['Chat Monitor','Real-time chat & groups'],['Statistics','Users, messages, online'],['Push Notify','GeTui UniPush system push']],
+    start: 'Get Started', lang_btn: '中文',
+    admin_user: 'Admin Username', admin_pass: 'Admin Password', admin_pass2: 'Confirm Password',
+    hint_admin_user: 'Username for admin panel login', hint_admin_pass: 'At least 6 characters',
+    err_pass_short: 'Password must be at least 6 characters', err_pass_mismatch: 'Passwords do not match',
+    server_name: 'Server Name', port: 'Port', jwt: 'JWT Secret',
+    hint_server_name: 'Server name shown in client', hint_port: 'Server listening port', hint_jwt: 'Leave empty to auto-generate',
+    push_info: '<strong>GeTui UniPush Config (Optional)</strong><br>Enable system-level push notifications (works even when app is killed).<br>Get AppID, AppKey, MasterSecret from <code>dev.getui.com</code>.',
+    done_title: 'Setup Complete!', done_desc: 'Server initialized successfully. Click below to enter the admin panel.',
+    go_admin: 'Go to Admin Panel',
+    back: 'Back', next: 'Next',
+    saving: 'Saving...', save_failed: 'Save failed: ',
+    done_summary: 'Admin Account: <strong>{user}</strong><br>Server Port: <strong>{port}</strong><br>Push Status: <strong>{push}</strong>',
+    push_enabled: 'Configured', push_disabled: 'Not configured',
+    network_err: 'Network error, please retry',
+  }
+};
+
+function setLang(l) {
+  setupLang = l;
+  const d = L[l];
+  document.getElementById('setupSubtitle').textContent = d.subtitle;
+  d.sl.forEach((s, i) => { document.getElementById('sl-' + i).textContent = s; });
+  document.getElementById('welcomeInfo').innerHTML = d.welcome_info;
+  d.wf.forEach((w, i) => { document.getElementById('wf' + (i+1) + '-title').textContent = w[0]; document.getElementById('wf' + (i+1) + '-desc').textContent = w[1]; });
+  document.getElementById('btn-start').textContent = d.start;
+  document.getElementById('btn-lang').textContent = d.lang_btn;
+  document.getElementById('lbl-admin-user').textContent = d.admin_user;
+  document.getElementById('lbl-admin-pass').textContent = d.admin_pass;
+  document.getElementById('lbl-admin-pass2').textContent = d.admin_pass2;
+  document.getElementById('hint-admin-user').textContent = d.hint_admin_user;
+  document.getElementById('hint-admin-pass').textContent = d.hint_admin_pass;
+  document.getElementById('err-admin-pass').textContent = d.err_pass_short;
+  document.getElementById('err-admin-pass2').textContent = d.err_pass_mismatch;
+  document.getElementById('lbl-server-name').textContent = d.server_name;
+  document.getElementById('lbl-port').textContent = d.port;
+  document.getElementById('lbl-jwt').textContent = d.jwt;
+  document.getElementById('hint-server-name').textContent = d.hint_server_name;
+  document.getElementById('hint-port').textContent = d.hint_port;
+  document.getElementById('hint-jwt').textContent = d.hint_jwt;
+  document.getElementById('pushInfo').innerHTML = d.push_info;
+  document.getElementById('done-title').textContent = d.done_title;
+  document.getElementById('done-desc').textContent = d.done_desc;
+  document.getElementById('btn-go-admin').textContent = d.go_admin;
+  for (let i = 1; i <= 3; i++) {
+    const b = document.getElementById('btn-back-' + i); if (b) b.textContent = d.back;
+    const n = document.getElementById('btn-next-' + i); if (n) n.textContent = d.next;
+  }
+}
+
+function goStep(n) {
+  currentStep = n;
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + n).classList.add('active');
+  document.querySelectorAll('.step').forEach((s, i) => {
+    s.classList.remove('active', 'done');
+    if (i < n) s.classList.add('done');
+    if (i === n) s.classList.add('active');
+  });
+}
+
+function validateStep1() {
+  const d = L[setupLang];
+  const pass = document.getElementById('adminPass').value;
+  const pass2 = document.getElementById('adminPass2').value;
+  document.getElementById('err-admin-pass').style.display = 'none';
+  document.getElementById('err-admin-pass2').style.display = 'none';
+  if (pass.length < 6) { document.getElementById('err-admin-pass').style.display = 'block'; return; }
+  if (pass !== pass2) { document.getElementById('err-admin-pass2').style.display = 'block'; return; }
+  goStep(2);
+}
+
+function validateStep3() {
+  doSave();
+}
+
+function toast(msg, type = 'error') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+async function doSave() {
+  const d = L[setupLang];
+  const btn = document.getElementById('btn-next-3');
+  btn.disabled = true;
+  btn.textContent = d.saving;
+
+  const config = {
+    adminUser: document.getElementById('adminUser').value.trim() || 'admin',
+    adminPass: document.getElementById('adminPass').value,
+    serverName: document.getElementById('serverName').value.trim() || 'HutaomuChat',
+    serverPort: parseInt(document.getElementById('serverPort').value) || 3000,
+    jwtSecret: document.getElementById('jwtSecret').value.trim() || '',
+    getuiAppId: document.getElementById('getuiAppId').value.trim(),
+    getuiAppKey: document.getElementById('getuiAppKey').value.trim(),
+    getuiMasterSecret: document.getElementById('getuiMasterSecret').value.trim(),
+  };
+
+  try {
+    const res = await fetch('/api/setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    });
+    const data = await res.json();
+    if (data.success) {
+      const pushStatus = config.getuiAppId ? d.push_enabled : d.push_disabled;
+      document.getElementById('doneInfo').innerHTML = d.done_summary
+        .replace('{user}', config.adminUser)
+        .replace('{port}', config.serverPort)
+        .replace('{push}', pushStatus);
+      goStep(4);
+    } else {
+      toast(d.save_failed + (data.error || ''));
+    }
+  } catch (e) {
+    toast(d.network_err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = d.next;
+  }
+}
+
+function goAdmin() {
+  window.location.href = '/admin';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+node_modules/
+uploads/*
+!uploads/.gitkeep
+data.json
+data.json.tmp
+.env
+server.config.json
+getui.config.json
