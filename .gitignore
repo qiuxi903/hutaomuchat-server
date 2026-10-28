@@ -1,0 +1,19 @@
+# 编译产物
+hutaomuchat-server
+hutaomuchat-server.exe
+hutaomuchat-server-linux-amd64
+*.exe
+*.test
+*.out
+
+# 运行时数据
+/data/
+/uploads/*
+!/uploads/.gitkeep
+/logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store

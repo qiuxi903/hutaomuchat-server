@@ -1,0 +1,17 @@
+# 统一使用 LF 换行，避免 Windows 上检出的源码带 CRLF
+* text=auto eol=lf
+
+*.go    text eol=lf
+*.js    text eol=lf
+*.css   text eol=lf
+*.html  text eol=lf
+*.md    text eol=lf
+*.yml   text eol=lf
+*.json  text eol=lf
+Makefile text eol=lf
+
+*.exe   binary
+*.apk   binary
+*.png   binary
+*.jpg   binary
+*.webp  binary

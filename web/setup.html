@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HutaomuChat 服务端初始化</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+</head>
+<body>
+
+<div class="login-screen">
+  <form class="login-card" id="setupForm" style="width:min(520px,100%)">
+    <div class="login-logo">⚙️</div>
+    <h1>服务端初始化</h1>
+    <p class="sub">完成以下配置后，服务端即可正式投入使用。此向导只会运行一次。</p>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="serverName">服务器名称</label>
+        <input type="text" id="serverName" value="HutaomuChat" placeholder="HutaomuChat">
+      </div>
+      <div class="field">
+        <label for="serverPort">监听端口</label>
+        <input type="number" id="serverPort" value="3000" min="1" max="65535">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field">
+        <label for="adminUser">管理员账号</label>
+        <input type="text" id="adminUser" value="admin" placeholder="admin" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="adminPass">管理员密码</label>
+        <input type="password" id="adminPass" placeholder="至少 6 个字符" autocomplete="new-password">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="jwtSecret">JWT 密钥</label>
+      <input type="text" id="jwtSecret" placeholder="留空自动生成随机密钥">
+      <div class="form-hint">密钥用于签发登录令牌，修改后所有已登录用户需要重新登录。</div>
+    </div>
+
+    <details style="margin-bottom:18px">
+      <summary style="cursor:pointer;color:var(--text-muted);font-weight:600;font-size:13px;margin-bottom:10px">
+        个推推送配置（可选）
+      </summary>
+      <div class="form-row">
+        <div class="field">
+          <label for="getuiAppId">AppID</label>
+          <input type="text" id="getuiAppId" placeholder="个推应用 AppID">
+        </div>
+        <div class="field">
+          <label for="getuiAppKey">AppKey</label>
+          <input type="text" id="getuiAppKey" placeholder="个推应用 AppKey">
+        </div>
+      </div>
+      <div class="field">
+        <label for="getuiSecret">MasterSecret</label>
+        <input type="text" id="getuiSecret" placeholder="个推 MasterSecret">
+        <div class="form-hint">用于向手机端发送系统级离线推送，不填则关闭该功能。</div>
+      </div>
+    </details>
+
+    <button type="submit" class="btn btn-primary btn-block" id="setupBtn">完成初始化</button>
+    <p class="form-hint" id="setupError" style="color:var(--danger);display:none"></p>
+    <p class="form-hint" style="text-align:center;margin-top:16px">
+      初始化完成后请重启服务端使配置生效。
+    </p>
+  </form>
+</div>
+
+<script>
+'use strict';
+
+const $ = (selector) => document.querySelector(selector);
+
+$('#setupForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const errorBox = $('#setupError');
+  const button = $('#setupBtn');
+  errorBox.style.display = 'none';
+  button.disabled = true;
+  button.textContent = '正在初始化…';
+
+  const body = {
+    serverName: $('#serverName').value.trim() || 'HutaomuChat',
+    serverPort: Number($('#serverPort').value) || 3000,
+    adminUser: $('#adminUser').value.trim() || 'admin',
+    adminPass: $('#adminPass').value,
+    jwtSecret: $('#jwtSecret').value.trim(),
+    getuiAppId: $('#getuiAppId').value.trim(),
+    getuiAppKey: $('#getuiAppKey').value.trim(),
+    getuiMasterSecret: $('#getuiSecret').value.trim(),
+  };
+
+  try {
+    const response = await fetch('/api/setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || '初始化失败');
+    button.textContent = '初始化完成 ✓';
+    const hint = document.createElement('p');
+    hint.className = 'form-hint';
+    hint.style.color = 'var(--success)';
+    hint.style.textAlign = 'center';
+    hint.style.marginTop = '14px';
+    hint.textContent = payload.message || '初始化完成，请重启服务端后登录管理后台。';
+    errorBox.after(hint);
+  } catch (error) {
+    errorBox.textContent = error.message;
+    errorBox.style.display = 'block';
+    button.disabled = false;
+    button.textContent = '完成初始化';
+  }
+});
+</script>
+</body>
+</html>

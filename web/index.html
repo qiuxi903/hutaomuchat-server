@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HutaomuChat 管理控制台</title>
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+</head>
+<body>
+
+<!-- ===================== 登录 ===================== -->
+<div class="login-screen" id="loginScreen">
+  <form class="login-card" id="loginForm" autocomplete="on">
+    <div class="login-logo">💬</div>
+    <h1>HutaomuChat 控制台</h1>
+    <p class="sub">请使用管理员账号登录服务端后台</p>
+    <div class="field">
+      <label for="loginUser">管理员账号</label>
+      <input type="text" id="loginUser" name="username" placeholder="admin" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <label for="loginPass">管理员密码</label>
+      <input type="password" id="loginPass" name="password" placeholder="••••••••" autocomplete="current-password" required>
+    </div>
+    <button type="submit" class="btn btn-primary btn-block" id="loginBtn">登录控制台</button>
+    <p class="form-hint" id="loginError" style="color:var(--danger);display:none"></p>
+  </form>
+</div>
+
+<!-- ===================== 主界面 ===================== -->
+<div class="app hidden" id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-logo">💬</div>
+      <div>
+        <div class="name" id="serverName">HutaomuChat</div>
+        <div class="ver">v2.0 · Go 服务端</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-group-title">概览</div>
+      <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span>仪表盘</div>
+      <div class="nav-item" data-page="online"><span class="icon">🟢</span>在线用户<span class="badge hidden" id="onlineBadge">0</span></div>
+
+      <div class="nav-group-title">内容管理</div>
+      <div class="nav-item" data-page="users"><span class="icon">👥</span>用户管理</div>
+      <div class="nav-item" data-page="chats"><span class="icon">💬</span>会话与群组</div>
+      <div class="nav-item" data-page="messages"><span class="icon">✉️</span>消息记录</div>
+      <div class="nav-item" data-page="moments"><span class="icon">🌈</span>朋友圈动态</div>
+      <div class="nav-item" data-page="announcements"><span class="icon">📢</span>群公告</div>
+      <div class="nav-item" data-page="joinreq"><span class="icon">🚪</span>入群申请<span class="badge hidden" id="joinBadge">0</span></div>
+
+      <div class="nav-group-title">运维</div>
+      <div class="nav-item" data-page="logs"><span class="icon">📄</span>运行日志</div>
+      <div class="nav-item" data-page="audit"><span class="icon">🛡️</span>操作审计</div>
+      <div class="nav-item" data-page="system"><span class="icon">🖥️</span>系统状态</div>
+      <div class="nav-item" data-page="settings"><span class="icon">⚙️</span>服务设置</div>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="status-pill">
+        <span class="dot" id="liveDot"></span>
+        <span id="liveText">连接中…</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="btn btn-ghost btn-icon menu-toggle" id="menuToggle">☰</button>
+      <div>
+        <h2 id="pageTitle">仪表盘</h2>
+        <div class="desc" id="pageDesc">服务端运行概览</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-sm" id="refreshBtn" title="刷新当前页面数据">⟳ 刷新</button>
+        <button class="btn btn-sm btn-icon" id="themeBtn" title="切换主题">🌙</button>
+        <button class="btn btn-sm btn-danger" id="logoutBtn">退出</button>
+      </div>
+    </header>
+
+    <div class="content" id="content">
+      <!-- 仪表盘 -->
+      <section class="page active" id="page-dashboard">
+        <div class="grid grid-4 mb" id="statCards"></div>
+        <div class="grid grid-2-1 mb">
+          <div class="card">
+            <div class="card-head">
+              <h3>消息趋势</h3>
+              <span class="sub">最近 14 天</span>
+              <div class="right">
+                <button class="btn btn-sm" data-series="messages">消息</button>
+                <button class="btn btn-sm" data-series="registrations">注册</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="chartArea"></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>消息类型分布</h3></div>
+            <div class="card-body">
+              <div id="chartDonut"></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-head"><h3>最新注册用户</h3><span class="sub">最近 8 位</span></div>
+            <div class="card-body" id="recentUsers"><div class="empty">加载中…</div></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>系统运行状态</h3></div>
+            <div class="card-body"><dl class="kv" id="runtimeInfo"></dl></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 在线用户 -->
+      <section class="page" id="page-online">
+        <div class="card">
+          <div class="card-head">
+            <h3>当前在线</h3>
+            <span class="sub" id="onlineSummary">0 人在线</span>
+            <div class="right"><span class="badge-live"><span class="dot live"></span>实时同步</span></div>
+          </div>
+          <div class="card-body">
+            <div class="online-grid" id="onlineGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 用户管理 -->
+      <section class="page" id="page-users">
+        <div class="toolbar">
+          <input type="search" id="userSearch" placeholder="搜索昵称 / 账号 / UID / 手机号">
+          <div class="right">
+            <span class="muted" id="userCount"></span>
+          </div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>用户</th><th>UID</th><th>手机号</th><th>状态</th>
+                <th>好友 / 会话</th><th>注册时间</th><th style="text-align:right">操作</th>
+              </tr></thead>
+              <tbody id="userRows"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="userPager"></div>
+        </div>
+      </section>
+
+      <!-- 会话管理 -->
+      <section class="page" id="page-chats">
+        <div class="toolbar">
+          <input type="search" id="chatSearch" placeholder="搜索群名 / 群号 / 会话 ID">
+          <select id="chatType" style="max-width:150px">
+            <option value="">全部类型</option>
+            <option value="GROUP">群聊</option>
+            <option value="SINGLE">单聊</option>
+          </select>
+          <div class="right"><span class="muted" id="chatCount"></span></div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>会话</th><th>群号</th><th>群主</th><th>成员</th><th>消息</th><th>最后活跃</th><th style="text-align:right">操作</th>
+              </tr></thead>
+              <tbody id="chatRows"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="chatPager"></div>
+        </div>
+      </section>
+
+      <!-- 消息记录 -->
+      <section class="page" id="page-messages">
+        <div class="toolbar">
+          <select id="messageChat" style="max-width:280px">
+            <option value="">选择会话查看消息…</option>
+          </select>
+          <div class="right"><span class="muted" id="messageCount"></span></div>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>时间</th><th>发送者</th><th>类型</th><th>内容</th></tr></thead>
+              <tbody id="messageRows"></tbody>
+            </table>
+          </div>
+          <div class="pagination" id="messagePager"></div>
+        </div>
+      </section>
+
+      <!-- 动态 -->
+      <section class="page" id="page-moments">
+        <div class="toolbar">
+          <div class="right"><span class="muted" id="momentCount"></span></div>
+        </div>
+        <div class="moment-grid" id="momentGrid"></div>
+        <div class="pagination" id="momentPager"></div>
+      </section>
+
+      <!-- 公告 -->
+      <section class="page" id="page-announcements">
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>内容</th><th>所属群组</th><th>发布者</th><th>@全体</th><th>时间</th><th style="text-align:right">操作</th></tr></thead>
+              <tbody id="announcementRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 入群申请 -->
+      <section class="page" id="page-joinreq">
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>申请人</th><th>目标群组</th><th>申请留言</th><th>状态</th><th>时间</th></tr></thead>
+              <tbody id="joinRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 日志 -->
+      <section class="page" id="page-logs">
+        <div class="grid grid-2-1">
+          <div class="card">
+            <div class="card-head">
+              <h3>日志内容</h3>
+              <div class="right">
+                <select id="logStream" style="max-width:130px">
+                  <option value="system">系统日志</option>
+                  <option value="user">用户操作</option>
+                </select>
+                <input type="date" id="logDate" style="width:150px">
+                <button class="btn btn-sm" id="logReload">加载</button>
+              </div>
+            </div>
+            <div class="card-body"><div class="log-view" id="logView">选择日期后点击「加载」查看日志文件。</div></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>日志统计</h3></div>
+            <div class="card-body" id="logStats"></div>
+          </div>
+        </div>
+        <div class="card mt">
+          <div class="card-head"><h3>内存日志</h3><span class="sub">最近 200 条</span></div>
+          <div class="card-body"><div class="log-view" id="logMemory">加载中…</div></div>
+        </div>
+      </section>
+
+      <!-- 审计 -->
+      <section class="page" id="page-audit">
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>时间</th><th>管理员</th><th>操作</th><th>对象</th><th>详情</th><th>来源 IP</th></tr></thead>
+              <tbody id="auditRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 系统状态 -->
+      <section class="page" id="page-system">
+        <div class="grid grid-2 mb">
+          <div class="card">
+            <div class="card-head"><h3>运行时信息</h3></div>
+            <div class="card-body"><dl class="kv" id="systemInfo"></dl></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>存储与推送</h3></div>
+            <div class="card-body"><dl class="kv" id="storageInfo"></dl></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>上传文件</h3><span class="sub" id="uploadSummary"></span>
+            <div class="right"><button class="btn btn-sm" id="uploadReload">刷新</button></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>文件名</th><th>大小</th><th>上传时间</th><th style="text-align:right">操作</th></tr></thead>
+              <tbody id="uploadRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- 设置 -->
+      <section class="page" id="page-settings">
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-head"><h3>基础设置</h3></div>
+            <div class="card-body">
+              <div class="field">
+                <label>服务器名称</label>
+                <input type="text" id="setServerName" placeholder="HutaomuChat">
+              </div>
+              <div class="field">
+                <label>监听端口</label>
+                <input type="number" id="setServerPort" placeholder="3000">
+                <div class="form-hint">修改端口后需要重启服务端才会生效。</div>
+              </div>
+              <div class="form-row">
+                <div class="field">
+                  <label>管理员账号</label>
+                  <input type="text" id="setAdminUser" placeholder="admin">
+                </div>
+                <div class="field">
+                  <label>管理员密码</label>
+                  <input type="password" id="setAdminPass" placeholder="留空表示不修改">
+                </div>
+              </div>
+              <div class="field">
+                <label>JWT 密钥</label>
+                <input type="text" id="setJwtSecret" placeholder="********">
+                <div class="form-hint">修改密钥会使已登录用户的令牌立即失效。</div>
+              </div>
+              <button class="btn btn-primary" id="saveSettings">保存设置</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>个推推送配置</h3></div>
+            <div class="card-body">
+              <div class="field">
+                <label>AppID</label>
+                <input type="text" id="setGetuiAppId" placeholder="个推应用 AppID">
+              </div>
+              <div class="field">
+                <label>AppKey</label>
+                <input type="text" id="setGetuiAppKey" placeholder="个推应用 AppKey">
+              </div>
+              <div class="field">
+                <label>MasterSecret</label>
+                <input type="text" id="setGetuiSecret" placeholder="个推 MasterSecret">
+              </div>
+              <button class="btn" id="saveGetui">保存推送配置</button>
+              <div class="form-hint">保存后需要重启服务端才会生效。</div>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-2 mt">
+          <div class="card">
+            <div class="card-head"><h3>广播通知</h3><span class="sub">向所有在线客户端推送系统消息</span></div>
+            <div class="card-body">
+              <div class="field">
+                <label>标题</label>
+                <input type="text" id="broadcastTitle" placeholder="例如：服务器维护通知">
+              </div>
+              <div class="field">
+                <label>内容</label>
+                <textarea id="broadcastContent" placeholder="通知内容"></textarea>
+              </div>
+              <button class="btn btn-primary" id="sendBroadcast">发送广播</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>危险操作</h3></div>
+            <div class="card-body">
+              <p class="muted" style="margin-top:0">重启服务端：由进程管理器（如 PM2 / systemd）重新拉起进程。</p>
+              <button class="btn" id="restartServer">重启服务端</button>
+              <hr style="border:none;border-top:1px solid var(--border);margin:18px 0">
+              <p class="muted" style="margin-top:0">格式化服务端：清空全部用户、会话、消息与上传文件，操作不可撤销。</p>
+              <div class="field">
+                <input type="text" id="resetConfirm" placeholder="请输入 RESET_ALL_DATA 以确认">
+              </div>
+              <button class="btn btn-danger" id="resetServer">格式化服务端</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 抽屉 ===================== -->
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h3 id="drawerTitle">详情</h3>
+    <button class="btn btn-ghost btn-icon" id="drawerClose" style="margin-left:auto">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot" id="drawerFoot"></div>
+</aside>
+
+<div class="toasts" id="toasts"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

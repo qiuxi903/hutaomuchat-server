@@ -1,296 +1,314 @@
-# HutaomuChat
+# HutaomuChat Server
 
 > 安全、简洁的即时通讯应用 — 服务端
 
-一个基于 Node.js + Express + WebSocket 的即时通讯服务端，配套 Android 客户端。支持私聊、群聊、朋友圈、表情包、文件传输、系统推送、后台管理等完整功能。
+HutaomuChat 的后端服务。**Go 1.24+ 实现，零第三方依赖**，仅使用标准库，
+离线环境下也能直接编译出可执行文件。配套 Android 客户端。
 
-## 📋 日志规范
-
-> **重要：以后的所有更新都需要写日志，以保持以后换软件和模型好更新。**
-
-- 服务端更新和 APK 构建完成后，导入至本文件夹
-- 本文件夹里的文档同步外面的日志更新
-- 详细日志请查看 `docs/` 目录
+支持私聊、群聊、朋友圈、表情包、文件传输、系统推送与网页管理后台。
 
 ---
 
 ## 特性一览
 
-**实时通信**
+### 实时通信
 - WebSocket 长连接，消息毫秒级送达
-- 离线消息队列，上线后自动投递
-- 消息撤回（2 分钟内，支持离线撤回同步）
-- @全体成员（管理员专属，每日限额，绕过免打扰）
+- **多端同时在线**：同一账号可在手机、平板、电脑同时登录，消息投递到全部设备
+- 离线消息队列，重新上线后自动补投
+- 消息撤回，撤回事件同样支持离线同步
+- 输入中状态实时广播
+- @全体成员（仅群主与管理员，每日限额，绕过免打扰）
 
-**社交功能**
-- 好友系统（搜索/推荐/申请/验证）
-- 群聊（创建/加入申请/公告/管理员/@提及/免打扰/置顶/群头像/群文件）
-- 朋友圈 & 用户圈（发布动态、点赞、评论、图片、可见范围隔离）
-- 表情包（自定义上传，云端同步）
-- 收藏（文本/图片/视频/文件，含来源信息）
+### 社交功能
+- 好友系统：搜索、推荐、申请、免验证自动通过
+- 群聊：创建、入群申请、群公告、管理员任免、@提及、免打扰、置顶、群头像、群文件
+- 朋友圈与用户圈：发布动态、点赞、评论、多图、可见范围隔离
+- 表情包：自定义上传、云端同步
+- 个人资料：头像、背景图、签名、性别、地区
 
-**管理后台** (`/admin`)
-- 首次部署 OOBE 向导（设置管理员、JWT 密钥、推送配置）
-- 仪表盘（在线人数、消息趋势图、注册统计、消息类型分布）
-- 用户管理（搜索/编辑/封禁/强制下线）
-- 聊天管理（左右分栏，消息实时自动刷新）
-- 朋友圈管理（卡片展示图片/点赞/评论）
-- 群公告 & 入群申请管理
-- 系统信息（内存/文件/推送状态）
-- 亮暗双主题 + 中英文切换 + 全局自动刷新
+### 管理后台 (`/admin`)
+- 首次部署初始化向导（管理员账号、JWT 密钥、个推推送配置）
+- 仪表盘：8 张统计卡、14 天消息趋势面积图、消息类型环形图
+- 12 个功能页面：仪表盘 / 在线用户 / 用户管理 / 会话与群组 / 消息记录 /
+  朋友圈动态 / 群公告 / 入群申请 / 运行日志 / 操作审计 / 系统状态 / 服务设置
+- 在线用户实时列表、封禁解封、密码重置、全服广播通知
+- 所有管理员动作写入审计日志
+- 深色 / 浅色双主题，响应式布局
+- 通过 WebSocket 实时推送在线人数与服务端事件
 
-**推送通知**
-- 个推 UniPush 2.0 系统级推送（OPPO/vivo/华为/小米厂商通道）
-- 应用被完全杀死后仍可收到消息通知
-
----
-
-## 技术架构
-
-```
-┌─────────────┐         ┌──────────────────────────────────┐
-│  Android    │  REST   │  Express (HTTP)                  │
-│  Client     │ ──────→ │  /api/auth  /api/users           │
-│  Compose    │         │  /api/friends /api/chats         │
-│  Material3  │  WS     │  /api/moments /api/upload        │
-│             │ ←═════→ │  /api/admin /api/push            │
-└─────────────┘         │                                  │
-                        │  WebSocket Server (ws)           │
-                        │  实时消息 / 在线状态 / typing     │
-                        │                                  │
-                        │  In-Memory DB + JSON 持久化      │
-                        │  (Proxy 拦截 + 防抖写入 + 原子写入)│
-                        │                                  │
-                        │  GeTui UniPush 2.0               │
-                        │  离线 → 厂商推送通道              │
-                        └──────────────────────────────────┘
-```
-
-**通信协议**：REST API 处理元数据（用户/好友/聊天/群设置/表情包/入群申请），WebSocket 处理实时消息（文本/图片/文件/视频/typing/入群通知/撤回/@全体）。
-
-**数据持久化**：内存数据库 + JSON 文件自动持久化。使用 ES6 Proxy 拦截所有数据变更，1 秒防抖延迟写入，原子写入（先 `.tmp` 后 `rename`），进程退出时强制保存。
+### 可靠性与安全
+- 密码使用 PBKDF2-HMAC-SHA256（21 万轮，每用户独立随机盐）
+- JWT 采用 HMAC-SHA256 签名，访问令牌短时效 + 刷新令牌长时效自动续期
+- 数据快照原子写入（临时文件 + rename），并保留备份副本，文件损坏自动回退
+- 上传文件基于引用清理：头像、背景图等仍被引用的文件永不被删除
+- 上传接口使用 MIME + 扩展名双白名单，阻断可执行文件上传
+- 下载接口做路径穿越防护
+- 全量输入校验，panic 不会导致进程崩溃
 
 ---
 
 ## 快速开始
 
-### 环境要求
-
-- Node.js >= 16
-- npm
-
-### 安装
+### 编译
 
 ```bash
-# 克隆仓库
-git clone https://github.com/qiuxi903/HutaomuChat.git
-cd HutaomuChat/securechat-server
-
-# 安装依赖
-npm install
-
-# 复制环境变量示例
-cp .env.example .env
-
-# 启动服务
-npm start
+# 需要 Go 1.24 或更高版本，无需联网拉取任何依赖
+go build -o hutaomuchat-server .
 ```
 
-### 首次部署
+跨平台编译：
 
-启动后浏览器打开 `http://localhost:3000/admin/setup`，进入 OOBE 向导：
-
-1. **管理员账户** — 设置后台登录的用户名和密码
-2. **服务器配置** — 服务器名称、端口、JWT 密钥（可自动生成）
-3. **推送配置** — 个推 AppId / AppKey / MasterSecret（可选，稍后配置）
-4. **完成** — 自动跳转到管理后台
-
-### 推送配置（可选）
-
-如需系统级推送通知（应用被杀死后仍可收到消息）：
-
-1. 在 [个推开放平台](https://dev.getui.com) 注册应用
-2. 创建 `getui.config.json`：
-   ```json
-   {
-     "appId": "你的AppID",
-     "appKey": "你的AppKey",
-     "masterSecret": "你的MasterSecret"
-   }
-   ```
-3. 重启服务端
-
----
-
-## 项目结构
-
-```
-securechat-server/
-├── server.js              # 入口，Express + WebSocket + OOBE 中间件
-├── db.js                  # 内存数据库 + JSON 持久化层
-├── getui.js               # 个推 REST API v2 推送模块
-├── package.json
-├── .env.example           # 环境变量示例
-├── .gitignore
-│
-├── middleware/
-│   └── auth.js            # JWT 认证中间件 + 封禁检查
-│
-├── routes/
-│   ├── auth.js            # 注册/登录/个人资料
-│   ├── users.js           # 用户搜索/详情/推荐
-│   ├── friends.js         # 好友请求/列表
-│   ├── chats.js           # 聊天/群组管理（公告/头像/禁言/置顶/管理员/入群申请）
-│   ├── messages.js        # 消息历史
-│   ├── moments.js         # 朋友圈/用户圈动态
-│   ├── upload.js          # 文件上传（multer，10MB 限制）
-│   ├── stickers.js        # 表情包 CRUD
-│   ├── push.js            # 推送 token 注册/移除
-│   ├── admin.js           # 管理后台 API
-│   └── setup.js           # OOBE 初始化配置
-│
-├── ws/
-│   └── index.js           # WebSocket 管理器（消息转发/在线状态/撤回/离线队列/推送）
-│
-└── admin/
-    ├── index.html         # 管理后台 SPA（亮暗主题/中英文/自动刷新）
-    └── setup.html         # OOBE 首次部署向导
+```bash
+GOOS=windows GOARCH=amd64 go build -o hutaomuchat-server.exe .
+GOOS=linux   GOARCH=amd64 go build -o hutaomuchat-server-linux-amd64 .
 ```
 
----
+也可以用 Makefile：
 
-## API 概览
+```bash
+make build          # 当前平台
+make build-windows  # Windows
+make build-linux    # Linux
+make test           # 运行单元测试
+```
 
-### 认证
+### 运行
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/api/auth/register` | 注册（手机号+密码+昵称） |
-| POST | `/api/auth/login` | 登录，返回 JWT |
-| GET | `/api/auth/profile` | 获取个人资料 |
-| PUT | `/api/auth/profile` | 更新个人资料 |
+```bash
+./hutaomuchat-server
+```
 
-### 用户
+首次启动后打开 `http://<host>:3000/admin/setup` 完成初始化向导，
+设置管理员账号、监听端口与个推推送配置。
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/users/search` | 搜索用户 |
-| GET | `/api/users/recommended` | 推荐好友 |
-| GET | `/api/users/:id` | 用户详情 |
+| 入口 | 地址 |
+|------|------|
+| 管理控制台 | `http://<host>:3000/admin/` |
+| 初始化向导 | `http://<host>:3000/admin/setup` |
+| REST API | `http://<host>:3000/api/...` |
+| WebSocket | `ws://<host>:3000/ws` |
 
-### 好友
+### 环境变量
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/friends` | 好友列表 |
-| POST | `/api/friends/request` | 发送好友请求 |
-| PUT | `/api/friends/request/:id` | 接受/拒绝请求 |
-
-### 聊天
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/chats` | 聊天列表 |
-| POST | `/api/chats/single` | 创建单聊 |
-| POST | `/api/chats/group` | 创建群聊 |
-| GET | `/api/chats/search` | 按群聊号搜索 |
-| POST | `/api/chats/:id/leave` | 退出群聊 |
-| POST | `/api/chats/:id/join` | 申请加入群聊 |
-| PUT | `/api/chats/:id/announcement` | 发布公告 |
-| PUT | `/api/chats/:id/avatar` | 更新群头像 |
-| POST | `/api/chats/:id/mute` | 消息免打扰 |
-| POST | `/api/chats/:id/pin` | 置顶聊天 |
-
-### 朋友圈
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/moments` | 用户圈动态（scope=public） |
-| GET | `/api/moments/friends` | 朋友圈动态（好友） |
-| POST | `/api/moments` | 发布动态 |
-| POST | `/api/moments/:id/like` | 点赞 |
-| POST | `/api/moments/:id/comment` | 评论 |
-
-### 管理后台 (`/api/admin`)
-
-需要管理员 JWT 认证，访问 `/admin` 进入 Web 管理界面。
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/api/admin/login` | 管理员登录 |
-| GET | `/api/admin/stats` | 仪表盘统计 |
-| GET/PUT/DELETE | `/api/admin/users` | 用户管理 |
-| GET/DELETE | `/api/admin/chats` | 聊天管理 |
-| GET/DELETE | `/api/admin/moments` | 朋友圈管理 |
-| GET | `/api/admin/system` | 系统信息 |
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `PORT` | 监听端口，优先于配置文件 | 配置文件中的值 |
+| `LOG_LEVEL` | 日志级别：`DEBUG` / `INFO` / `WARN` / `ERROR` | `INFO` |
+| `HUTAOMUCHAT_DATA_DIR` | 数据根目录 | 可执行文件所在目录 |
+| `ACCESS_TOKEN_TTL` | 访问令牌有效期（天） | `7` |
+| `REFRESH_TOKEN_TTL` | 刷新令牌有效期（天） | `90` |
 
 ---
 
-## WebSocket 消息类型
+## 目录结构
 
-客户端连接 `ws://host:port`，登录后通过 WebSocket 收发实时消息。
+```
+.
+├── main.go                  # 入口：依赖装配、优雅退出、重启钩子
+├── internal/
+│   ├── api/                 # HTTP 路由与处理器
+│   │   ├── router.go        # 路由表（Go 1.22+ ServeMux）
+│   │   ├── middleware.go    # 认证、初始化守卫
+│   │   ├── auth.go          # 注册 / 登录 / 资料 / 令牌刷新
+│   │   ├── users.go         # 搜索 / 推荐 / 详情
+│   │   ├── friends.go       # 好友申请与关系
+│   │   ├── chats.go         # 会话 / 群组 / 公告 / 管理员
+│   │   ├── messages.go      # 消息历史 / 广播 / 推送
+│   │   ├── moments.go       # 朋友圈
+│   │   ├── stickers.go      # 表情包
+│   │   ├── upload.go        # 文件上传与下载
+│   │   ├── push.go          # 个推令牌注册
+│   │   ├── setup.go         # 首次运行向导
+│   │   ├── admin.go         # 管理后台 API
+│   │   ├── admin_ws.go      # 管理后台实时通道
+│   │   ├── cleanup.go       # 基于引用的上传文件清理
+│   │   └── ws.go            # 客户端 WebSocket 协议
+│   ├── config/              # 服务端配置（管理员密码以哈希存储）
+│   ├── logging/             # 系统日志 + 用户操作日志
+│   ├── models/              # 领域模型与对外 DTO
+│   ├── push/                # 个推 UniPush 2.0 客户端
+│   ├── security/            # JWT (HS256) + PBKDF2 密码哈希
+│   ├── store/               # 内存数据库 + 索引 + 原子快照
+│   ├── ws/                  # RFC 6455 WebSocket 实现 + 连接中心
+│   └── httpx/               # JSON 助手与中间件
+├── web/                     # 管理控制台（原生 JS，无构建步骤）
+│   ├── index.html
+│   ├── app.js
+│   ├── styles.css
+│   └── setup.html
+├── uploads/                 # 上传文件目录
+└── 服务端开发日志.md          # 服务端完整变更记录
+```
 
-| 类型 | 方向 | 说明 |
-|------|------|------|
-| `auth` | C→S | 登录认证 |
-| `CHAT_MESSAGE` | 双向 | 聊天消息（TEXT/IMAGE/FILE/VIDEO/CARD） |
-| `RECALL` | 双向 | 撤回消息 |
-| `typing` | C→S | 正在输入 |
-| `ONLINE_STATUS` | S→C | 在线状态变更 |
-| `pending_messages` | S→C | 离线消息投递 |
-| `pending_recalls` | S→C | 离线撤回投递 |
-| `at_all_notification` | S→C | @全体通知（绕过免打扰） |
-| `member_joined/left` | S→C | 群成员加入/退出 |
-| `force_disconnect` | S→C | 强制下线（封禁） |
+运行时数据保存在可执行文件同级目录：
 
----
-
-## 客户端
-
-Android 客户端使用 Jetpack Compose + Material3 开发，源码暂不开源。预编译 APK 见 [Releases](../../releases) 页面。
-
-客户端特性：
-- 6 种预设主题色 + 亮暗色切换
-- 聊天背景图自定义
-- 好友资料页背景图下拉放大
-- 通知独立控制（声音/震动/免打扰）
-- 后台保活（前台服务 + AlarmManager + WorkManager + 个推）
-
----
-
-## 部署建议
-
-- 推荐使用 Docker 或 PM2 部署
-- 配置 Nginx 反向代理，启用 HTTPS 和 WSS
-- 数据库目前为 JSON 文件持久化，适合中小规模使用
-- 大规模部署建议替换为 MongoDB/PostgreSQL
-
-```nginx
-# Nginx 配置示例
-server {
-    listen 443 ssl;
-    server_name chat.example.com;
-
-    ssl_certificate     /path/to/cert.pem;
-    ssl_certificate_key /path/to/key.pem;
-
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
+```
+data/     server.config.json、getui.config.json、store.json（+ .bak 备份）
+uploads/  上传的图片与文件
+logs/     system-YYYY-MM-DD.log、user-YYYY-MM-DD.log
 ```
 
 ---
 
-## 许可证
+## 技术选型说明
 
-[AGPL-3.0](LICENSE)
+旧版基于 Node.js + Express + ws，需要 7 个第三方依赖。本版全部用标准库实现，
+因此 `go build` 不需要联网，也不存在依赖漏洞：
 
-Copyright (C) 2026 qiuxi903
+| 旧版依赖 | 本版实现 | 说明 |
+|---------|---------|------|
+| Express | `net/http` + Go 1.22+ `ServeMux` | 方法级路由 `GET /api/users/{id}` |
+| ws | `internal/ws`（自实现 RFC 6455） | 握手、分片重组、ping/pong、关闭握手 |
+| jsonwebtoken | `internal/security/jwt.go` | HS256 + `crypto/hmac` 常量时间比较 |
+| bcryptjs | `internal/security/password.go` | PBKDF2-HMAC-SHA256 / 210,000 轮 |
+| multer | `mime/multipart` | 标准库解析 multipart 表单 |
+| uuid | `crypto/rand` | 16 字节随机数 hex 编码 |
+| cors | `internal/httpx/middleware.go` | 自定义中间件 |
 
-本程序是自由软件：您可以根据 GNU Affero 通用公共许可证第3版的条款重新分发和/或修改它。
+数据层也从 O(n) 线性扫描改为索引查询：用户按 ID / 手机号 / UID 建索引，
+好友关系用双向集合，会话成员与消息按会话分桶。
+
+---
+
+## API 一览
+
+完整的接口列表与 Android 客户端保持兼容。
+
+```
+认证      POST /api/auth/register       POST /api/auth/login
+          POST /api/auth/refresh        GET  /api/auth/me
+          PUT  /api/auth/profile
+用户      GET  /api/users/search        GET  /api/users/recommended
+          GET  /api/users/{id}
+好友      GET  /api/friends             POST /api/friends/request
+          GET  /api/friends/requests    POST /api/friends/requests/{id}/respond
+          DELETE /api/friends/{friendId}
+会话      GET  /api/chats               POST /api/chats/single
+          POST /api/chats/group         GET  /api/chats/{id}
+          POST /api/chats/{id}/leave    POST /api/chats/{id}/announcement
+          GET  /api/chats/{id}/announcements
+          DELETE /api/chats/{id}/announcements/{announcementId}
+          PUT  /api/chats/{id}/avatar   POST /api/chats/{id}/mute
+          POST /api/chats/{id}/pin      POST /api/chats/{id}/admins
+          DELETE /api/chats/{id}/admins/{userId}
+          GET  /api/chats/{id}/files    POST /api/chats/{id}/files/{fileId}/permanent
+          DELETE /api/chats/{id}/files/{fileId}
+          POST /api/chats/{id}/join     GET  /api/chats/{id}/join-requests
+          GET  /api/chats/managed-join-requests
+          POST /api/chats/join-requests/{requestId}/respond
+          GET  /api/chats/search        GET  /api/chats/global
+消息      GET  /api/messages/{chatId}   POST /api/messages/{chatId}
+动态      GET  /api/moments             GET  /api/moments/friends
+          POST /api/moments             POST /api/moments/{id}/like
+          DELETE /api/moments/{id}/like POST /api/moments/{id}/comment
+          DELETE /api/moments/{id}
+其他      GET  /api/stickers            POST /api/stickers
+          DELETE /api/stickers/{id}     POST /api/upload
+          POST /api/upload/multiple     POST /api/push/token
+          DELETE /api/push/token        GET  /api/health
+```
+
+管理接口统一位于 `/api/admin/` 下，需要管理员令牌（`role=admin`）。
+
+---
+
+## WebSocket 协议
+
+客户端连接 `ws://<host>/ws` 后先发送认证帧：
+
+```json
+{"type": "authenticate", "token": "<用户 JWT>"}
+```
+
+服务端回执：
+
+```json
+{"type": "authenticated", "userId": "..."}
+```
+
+客户端可发送的帧类型：
+
+| type | 说明 |
+|------|------|
+| `message` | 发送消息，字段 `chatId` / `content` / `msgType` / `messageId` |
+| `typing` | 正在输入，字段 `chatId` |
+| `RECALL` | 撤回消息，字段 `chatId` / `messageId` |
+| `message_ack` | 消息状态回执，字段 `messageId` / `status` |
+| `friend_request` | 通知好友，字段 `toUserId` |
+| `ping` | 心跳 |
+
+服务端下发的事件类型：`message`、`pending_messages`、`RECALL`、`typing`、
+`online_status`、`at_all_notification`、`at_all_error`、`at_all_info`、
+`force_disconnect`、`member_left`、`member_joined`、`friend_request`、
+`friend_request_accepted`、`friend_request_rejected`、`JOIN_REQUEST`、
+`JOIN_REQUEST_RESPONSE`、`moment_new`、`moment_like`、`moment_comment`、
+`system_broadcast`、`error`、`auth_error`。
+
+管理后台连接 `ws://<host>/ws/admin`，使用管理员令牌认证，
+可接收 `stats` 与 `event` 两种帧。
+
+---
+
+## 会话保持与文件保留
+
+### 令牌续期
+
+访问令牌有效期较短（默认 7 天），同时签发一个有效期较长的刷新令牌
+（默认 90 天）。客户端在收到 401 时用刷新令牌换取新的访问令牌并自动重放请求，
+因此访问令牌到期不会把用户踢回登录页。
+
+```
+POST /api/auth/refresh
+{ "refresh_token": "<refresh_token>" }
+
+→ { "token": "<新的访问令牌>", "refresh_token": "<轮换后的刷新令牌>", "expires_in": 604800 }
+```
+
+刷新令牌每次使用后都会轮换，旧的立即失效。
+
+### 上传文件保留策略
+
+服务端每天清理一次上传目录，但**只删除「无人引用」且「超过 7 天」的文件**。
+下列引用会被自动识别并永久保留：
+
+- 用户头像、背景图与背景原图
+- 表情包
+- 朋友圈图片
+- 群头像
+- 所有消息内容中出现的 `/uploads/<文件名>`
+
+因此头像与简介图不会因为清理任务而消失。
+
+---
+
+## 测试
+
+```bash
+go test ./internal/...
+```
+
+覆盖密码哈希与令牌签发校验、数据层各类操作、WebSocket 帧解析与多端连接、
+HTTP 层鉴权与越权、令牌刷新流程、上传保留策略、快照损坏回退。
+
+---
+
+## 从 Node.js 版迁移
+
+旧版数据保存在 `data.json`，本版保存在 `data/store.json`，两者格式不同，
+**不提供自动迁移**。原因：
+
+- 旧版密码使用 bcrypt 哈希，本版使用 PBKDF2，标准库无法校验 bcrypt，
+  强行迁移会导致所有账号无法登录；
+- 旧版 `data.json` 中的 `password_hash` 字段曾通过接口返回给前端，
+  属于安全缺陷，不建议继续沿用这批数据。
+
+迁移建议：以旧服务端为准导出用户手机号列表，在新服务端重新注册，
+或在新服务端增加一次性导入脚本（由管理员临时设置密码）。
+
+---
+
+## 许可
+
+[AGPL-3.0](LICENSE) · Copyright (C) 2026 qiuxi903
+
+服务端以 AGPL-3.0 开源。Android 客户端不开源。
